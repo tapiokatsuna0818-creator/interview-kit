@@ -1,0 +1,1395 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#1a2a4a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>面接シミュレーター</title>
+<link rel="manifest" href='data:application/json,{"name":"面接シミュレーター","short_name":"面接SIM","start_url":".","display":"standalone","orientation":"portrait","background_color":"%231a2a4a","theme_color":"%231a2a4a","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22%3E%3Crect width=%22192%22 height=%22192%22 rx=%2232%22 fill=%22%231a2a4a%22/%3E%3Ccircle cx=%2296%22 cy=%2272%22 r=%2234%22 fill=%22%23c9a24b%22/%3E%3Crect x=%2244%22 y=%22118%22 width=%22104%22 height=%2258%22 rx=%2229%22 fill=%22%23c9a24b%22/%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"}]}'>
+<style>
+/* ===== リセット & 変数 ===== */
+:root{
+  --navy:#1a2a4a; --navy-2:#243a63; --navy-3:#31507f;
+  --ink:#1d2430; --paper:#ffffff; --mist:#f4f6fa; --line:#dde3ec;
+  --accent:#c9a24b; --accent-d:#a9863a;
+  --best:#2e7d5b; --ok:#c48a2a; --bad:#c0453f;
+  --muted:#6a7686; --shadow:0 6px 22px rgba(20,32,58,.14);
+  --radius:16px; --tap:44px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",sans-serif;
+  color:var(--ink); background:var(--navy);
+  font-size:16px; line-height:1.6; -webkit-text-size-adjust:100%;
+}
+button{font-family:inherit; cursor:pointer;}
+input,textarea{font-family:inherit;}
+
+/* ===== レイアウト ===== */
+#app{
+  max-width:480px; margin:0 auto; min-height:100vh; min-height:100dvh;
+  background:var(--mist); position:relative; overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 0 40px rgba(0,0,0,.25);
+}
+.screen{flex:1; display:flex; flex-direction:column; min-height:0; animation:fade .28s ease;}
+@keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+.pad{padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
+.scroll{overflow-y:auto; -webkit-overflow-scrolling:touch;}
+.grow{flex:1;}
+
+/* ===== 共通テキスト ===== */
+h1,h2,h3{margin:0 0 .4em; line-height:1.3;}
+h1{font-size:23px;} h2{font-size:19px;} h3{font-size:16px;}
+p{margin:0 0 .8em;}
+.muted{color:var(--muted); font-size:14px;}
+.tiny{font-size:12px;}
+.center{text-align:center;}
+
+/* ===== ボタン ===== */
+.btn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  min-height:var(--tap); width:100%; padding:13px 16px; border:none;
+  border-radius:12px; font-size:16px; font-weight:700;
+  background:var(--navy); color:#fff; transition:transform .08s, background .15s;
+}
+.btn:active{transform:scale(.97);}
+.btn.accent{background:var(--accent); color:#20160a;}
+.btn.ghost{background:#fff; color:var(--navy); border:1.5px solid var(--line);}
+.btn.sm{min-height:38px; padding:8px 14px; font-size:14px; width:auto;}
+.btn:disabled{opacity:.45;}
+.btn-row{display:flex; gap:10px; margin-top:12px;}
+
+/* ===== カード ===== */
+.card{
+  background:#fff; border-radius:var(--radius); padding:18px;
+  box-shadow:var(--shadow); margin-bottom:14px;
+}
+.card.tap{cursor:pointer; transition:transform .1s;}
+.card.tap:active{transform:scale(.985);}
+
+/* ===== ヘッダーバー ===== */
+.topbar{
+  display:flex; align-items:center; gap:10px; padding:12px 14px;
+  padding-top:calc(12px + env(safe-area-inset-top));
+  background:var(--navy); color:#fff; position:sticky; top:0; z-index:5;
+}
+.topbar .ico{
+  width:38px; height:38px; border-radius:10px; border:none; background:rgba(255,255,255,.14);
+  color:#fff; font-size:18px; display:flex; align-items:center; justify-content:center;
+}
+.topbar .title{font-weight:700; font-size:16px; flex:1;}
+.progress{height:4px; background:rgba(255,255,255,.2); border-radius:2px; overflow:hidden;}
+.progress>i{display:block; height:100%; background:var(--accent); transition:width .3s;}
+
+/* ===== タイトル画面 ===== */
+.hero{
+  background:linear-gradient(160deg,var(--navy) 0%,var(--navy-2) 60%,var(--navy-3) 100%);
+  color:#fff; padding:44px 22px 30px; text-align:center;
+}
+.hero .logo{
+  width:76px; height:76px; margin:0 auto 16px; border-radius:20px;
+  background:linear-gradient(145deg,var(--accent),var(--accent-d));
+  display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(0,0,0,.3);
+}
+.hero .logo svg{width:44px; height:44px;}
+.hero h1{color:#fff; font-size:26px;}
+.hero .sub{color:rgba(255,255,255,.82); font-size:14px;}
+.mode-card{
+  text-align:left; display:flex; align-items:center; gap:14px;
+}
+.mode-card .badge{
+  min-width:52px; height:52px; border-radius:14px; display:flex;
+  align-items:center; justify-content:center; font-size:26px; color:#fff;
+  background:linear-gradient(145deg,var(--navy-2),var(--navy-3));
+}
+.mode-card.free .badge{background:linear-gradient(145deg,var(--best),#256e4d);}
+.mode-card h3{margin-bottom:2px;}
+.locked{opacity:.5; position:relative;}
+.lock-label{
+  font-size:11px; background:var(--accent); color:#20160a; padding:2px 8px;
+  border-radius:20px; font-weight:700; margin-left:6px;
+}
+
+/* ===== ノベルシーン ===== */
+.scene-wrap{flex:1; display:flex; flex-direction:column; min-height:0;}
+.scene-img{
+  flex:2; min-height:0; position:relative; overflow:hidden;
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.scene-txt{
+  flex:1; min-height:34%; background:rgba(255,255,255,.97); border-top:3px solid var(--accent);
+  padding:16px 18px calc(18px + env(safe-area-inset-bottom)); position:relative;
+  display:flex; flex-direction:column;
+}
+.nameplate{
+  position:absolute; top:-15px; left:16px; background:var(--navy); color:#fff;
+  padding:4px 14px; border-radius:20px; font-size:13px; font-weight:700; box-shadow:var(--shadow);
+}
+.scene-txt .body{flex:1; overflow-y:auto; font-size:16px; padding-top:6px;}
+.tap-hint{text-align:right; color:var(--accent-d); font-size:12px; animation:blink 1.2s infinite;}
+@keyframes blink{50%{opacity:.35;}}
+
+/* プレースホルダー画像（グラデ＋シルエット） */
+.ph-bg{position:absolute; inset:0;}
+.ph-silhouette{
+  position:relative; width:150px; height:190px; margin-bottom:0; opacity:.9;
+}
+.ph-tag{
+  position:absolute; top:10px; left:10px; background:rgba(0,0,0,.35); color:#fff;
+  font-size:10px; padding:3px 7px; border-radius:6px; letter-spacing:.03em;
+}
+
+/* ===== 5択 ===== */
+.q-stem{background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:14px;}
+.q-topic{font-size:11px; color:var(--accent-d); font-weight:700; letter-spacing:.05em; margin-bottom:4px;}
+.choice{
+  display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  background:#fff; border:1.5px solid var(--line); border-radius:12px;
+  padding:13px 14px; margin-bottom:10px; min-height:var(--tap); font-size:15px; color:var(--ink);
+  transition:border-color .15s, background .15s;
+}
+.choice .k{
+  min-width:26px; height:26px; border-radius:50%; background:var(--mist);
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:var(--navy);
+}
+.choice:active{background:var(--mist);}
+.choice.sel-best{border-color:var(--best); background:#eaf6f0;}
+.choice.sel-ok{border-color:var(--ok); background:#fbf3e2;}
+.choice.sel-bad{border-color:var(--bad); background:#fbecea;}
+.choice.dim{opacity:.5;}
+
+/* ===== モーダル ===== */
+.modal-bg{
+  position:fixed; inset:0; background:rgba(15,22,40,.55); z-index:50;
+  display:flex; align-items:flex-end; justify-content:center; animation:fade .2s;
+}
+.modal{
+  background:#fff; width:100%; max-width:480px; border-radius:20px 20px 0 0;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:82vh; overflow-y:auto;
+  animation:slideup .28s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes slideup{from{transform:translateY(100%);} to{transform:none;}}
+.verdict-pill{
+  display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px;
+  font-size:13px; font-weight:700; color:#fff; margin-bottom:10px;
+}
+.vp-best{background:var(--best);} .vp-ok{background:var(--ok);} .vp-bad{background:var(--bad);}
+.layer{border-left:3px solid var(--line); padding:2px 0 2px 12px; margin:0 0 12px;}
+.layer .lab{font-size:12px; font-weight:700; color:var(--accent-d); margin-bottom:2px;}
+.layer.consensus{border-color:var(--best);}
+.layer.schools{border-color:var(--accent);}
+.layer.practice{border-color:var(--navy-3);}
+.src-note{font-size:12px; color:var(--muted); margin-top:6px;}
+
+/* ===== 診断カード / 結果 ===== */
+.score-hero{
+  background:linear-gradient(160deg,var(--navy),var(--navy-3)); color:#fff;
+  border-radius:var(--radius); padding:22px; text-align:center; margin-bottom:16px; box-shadow:var(--shadow);
+}
+.score-num{font-size:52px; font-weight:800; line-height:1;}
+.rank-badge{
+  display:inline-block; font-size:34px; font-weight:800; width:64px; height:64px; line-height:64px;
+  border-radius:50%; background:var(--accent); color:#20160a; margin-bottom:8px;
+}
+.bar-row{margin-bottom:12px;}
+.bar-row .bl{display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;}
+.bar{height:12px; background:var(--line); border-radius:6px; overflow:hidden;}
+.bar>i{display:block; height:100%; background:linear-gradient(90deg,var(--navy-3),var(--accent)); border-radius:6px; transition:width .5s;}
+.weak-chip{
+  display:inline-block; background:#fbecea; color:var(--bad); border:1px solid #f0c9c6;
+  padding:6px 12px; border-radius:20px; font-size:13px; font-weight:700; margin:0 6px 6px 0;
+}
+.axis-grid{display:flex; gap:10px; margin-bottom:14px;}
+.axis-box{flex:1; background:#fff; border-radius:12px; padding:12px 8px; text-align:center; box-shadow:var(--shadow);}
+.axis-box .n{font-size:26px; font-weight:800; color:var(--navy);}
+.axis-box .l{font-size:11px; color:var(--muted);}
+
+/* ===== テキスト入力 ===== */
+.ta-wrap{flex:1; display:flex; flex-direction:column; padding:16px 16px calc(16px + env(safe-area-inset-bottom));}
+textarea.answer{
+  flex:1; min-height:150px; width:100%; border:1.5px solid var(--line); border-radius:12px;
+  padding:14px; font-size:15px; line-height:1.7; resize:none; background:#fff;
+}
+textarea.answer:focus{outline:none; border-color:var(--accent);}
+.counter{text-align:right; font-size:12px; color:var(--muted); margin:6px 2px;}
+.counter.warn{color:var(--bad);}
+
+/* ===== 履歴・知識 ===== */
+.list-item{background:#fff; border-radius:12px; padding:14px; box-shadow:var(--shadow); margin-bottom:10px;}
+.list-item .meta{font-size:12px; color:var(--muted);}
+.pills{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;}
+.pill{font-size:11px; background:var(--mist); border-radius:20px; padding:3px 10px; color:var(--navy);}
+.copybox{background:var(--navy); color:#cfe; border-radius:12px; padding:12px; font-size:12px; max-height:120px; overflow:auto; white-space:pre-wrap; margin-bottom:10px;}
+
+/* ===== トースト ===== */
+.toast{
+  position:fixed; bottom:calc(24px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+  background:var(--ink); color:#fff; padding:10px 18px; border-radius:24px; font-size:14px; z-index:80;
+  box-shadow:var(--shadow); animation:fade .2s;
+}
+.divider{height:1px; background:var(--line); margin:16px 0;}
+.notice{background:#fff5e0; border:1px solid #f0dca8; border-radius:10px; padding:10px 12px; font-size:13px; color:#7a5c1a; margin-bottom:12px;}
+svg.line-graph{width:100%; height:auto; background:#fff; border-radius:12px; box-shadow:var(--shadow);}
+/* 診断結果 強化（A-1） */
+.cat-comment{font-size:12px; margin:4px 2px 0; line-height:1.55;}
+.cat-comment.good{color:var(--best);}
+.cat-comment.bad{color:var(--bad);}
+.weak-block{margin-bottom:12px;}
+.weak-advice{background:#fff; border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:8px; padding:9px 11px; font-size:13px; line-height:1.6; margin-top:6px;}
+.weak-advice b{color:var(--accent-d);}
+.cta-box{background:linear-gradient(160deg,var(--navy),var(--navy-3)); color:#fff; border-radius:var(--radius); padding:16px; margin:16px 0; box-shadow:var(--shadow);}
+.cta-lead{font-size:13px; line-height:1.75; opacity:.93; margin-bottom:12px;}
+.cta-btn{text-decoration:none;}
+.rv-item{background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; overflow:hidden;}
+.rv-item>summary{list-style:none; cursor:pointer; padding:11px 13px; display:flex; align-items:center; gap:8px; font-size:13px; min-height:var(--tap);}
+.rv-item>summary::-webkit-details-marker{display:none;}
+.rv-ok{color:var(--best); font-weight:800;}
+.rv-ng{color:var(--bad); font-weight:800;}
+.rv-topic{color:var(--accent-d); font-weight:700; white-space:nowrap;}
+.rv-prompt{color:var(--ink); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.rv-body{padding:2px 13px 12px; border-top:1px solid var(--line);}
+.rv-line{margin:8px 0;}
+.rv-line .verdict-pill{white-space:normal; display:inline-block; line-height:1.5;}
+/* 初回インストールガイド（A-2） */
+.install-sheet h3{margin-bottom:8px;}
+.install-sheet .ig-hint{background:var(--mist); border-radius:10px; padding:10px 12px; font-size:14px; line-height:1.6; margin-bottom:14px;}
+</style>
+</head>
+<body>
+<div id="app"><div class="screen pad"><p class="muted">読み込み中…</p></div></div>
+
+<script>
+"use strict";
+/* ============================================================
+   面接シミュレーター エンジン v1.0
+   - 単一HTML / 外部通信ゼロ / Vanilla JS / 決定論採点
+   - trial(診断キット) と full(シミュレーター) を共通エンジンで駆動
+   ============================================================ */
+
+/* ---------- CONFIG（統合時はここを固定して1形態に分岐） ---------- */
+var CONFIG = { edition: "trial", locale: "ja" };   // edition は起動時に選択（trial|full）
+
+/* ============================================================
+   GAME_DATA（プレースホルダー：スキーマ準拠のダミー）
+   統合時は残プレースホルダーを全差し替え
+   ============================================================ */
+var GAME_DATA = {
+  meta: { version: "2.0", locale: "ja", edition: "trial" },
+
+  personas: [
+    {
+      id: "p4",
+      name: "優しいが鋭い",
+      intro: "終始おだやかな物腰の面接官。相づちも柔らかい。ただし、回答の曖昧な部分は決して聞き流さず、静かに核心へ踏み込んでくる。",
+      expressions: { neutral: "face_p4_neutral", stern: "face_p4_thinking", smile: "face_p4_smile", thinking: "face_p4_thinking" },
+      lines: {
+        greeting: ["本日はお越しいただきありがとうございます。どうぞ、楽になさってください。普段のお仕事の話を聞かせていただければ十分です。"],
+        probe_short: ["すみません、もう少しだけ伺ってもいいですか。今のお話、私の理解がまだ追いついていない気がして。"],
+        probe_noExample: ["素敵な考え方ですね。ちなみに、それが実際の場面で形になったこと、何か一つ思い浮かびますか。"],
+        ack: ["なるほど、そういうことでしたか。"],
+        closing: ["ありがとうございました。最後にひとつだけ——今度はあなたの番です。何か、私に聞いておきたいことはありますか。"]
+      }
+    }
+  ],
+
+  scenes: [
+    { id:"reception", type:"story", bg:"bg_reception", text:"面接開始10分前。オフィスビルの受付に着いた。案内板の内線番号を確認し、受話器に手を伸ばす。——ここから、もう面接は始まっている。", next:"hallway" },
+    { id:"hallway",   type:"story", bg:"bg_hallway",   text:"担当者に案内され、静かな廊下を進む。面接室のドアの前で足が止まる。深呼吸をひとつ。", next:"door" },
+    { id:"door",      type:"choice", bg:"bg_door",     mannerRef:null, scene:"door", next:"enter" },
+    { id:"enter",     type:"choice", bg:"bg_room",     mannerRef:null, scene:"enter", next:"seat" },
+    { id:"seat",      type:"choice", bg:"bg_room",     mannerRef:null, scene:"seat", next:"qa" },
+    { id:"qa",        type:"qa",     bg:"bg_room",     next:"reverse_q" },
+    { id:"reverse_q", type:"reverse_q", bg:"bg_room",  scene:"reverse_q", next:"exit" },
+    { id:"exit",      type:"choice", bg:"bg_room",     mannerRef:null, scene:"exit", next:"result" },
+    { id:"result",    type:"result", bg:"bg_room" }
+  ],
+
+  mannerQuestions: [
+    {
+      id: "m_q01", scene: null, usage: "quiz", topic: "選考前の対応",
+      prompt: "面接当日、電車の遅延で開始時刻に間に合わないことが確定しました。最も適切な対応はどれですか。",
+      choices: [
+        { text: "まず駅で遅延証明書を受け取り、それを写真に撮って採用担当へメールで送り、証明とあわせて遅刻を報告する", verdict: "bad", points: 0 },
+        { text: "数分程度の遅れで済みそうなので、連絡はせず、到着してから受付と面接官に直接まとめて謝罪する", verdict: "bad", points: 0 },
+        { text: "遅れると分かった時点で、すぐ採用担当へ電話し、お詫び・理由・到着見込みを伝える", verdict: "best", points: 2 },
+        { text: "電車内で通話できないため、まずメールで一報し「通話でき次第お電話します」と添え、降車後すぐ電話する", verdict: "ok", points: 1 },
+        { text: "遅刻の印象を引きずるより仕切り直す方が良いので、メールで日程の再調整を依頼して当日は引き返す", verdict: "bad", points: 0 }
+      ],
+      explanation: {
+        consensus: "遅刻連絡の優先順位は「電話＞メール」で全出典一致。メールは相手がいつ読むか分からず、面接官側のスケジュール調整ができないため、メール単独で完結させるのはNG。",
+        schools: "対立説はなし。争点は「電車内など物理的に通話できない場合」のみで、その解も「メールで一次連絡＋『後ほど電話します』と明記→通話可能になり次第かけ直す」の二段構えで各社一致。",
+        practice: "伝える内容は「誠意あるお詫び・遅刻理由・到着予定時刻」の3点。遅延証明書は後から提出すればよく、連絡より優先しない。数分の遅れでも無連絡は最も評価を下げる。"
+      },
+      source: "調査項目30"
+    },
+    {
+      id: "m_q02", scene: null, usage: "quiz", topic: "受付・入室前",
+      prompt: "面接会場の受付に到着しました。最も適切な名乗り方はどれですか。",
+      choices: [
+        { text: "「面接に来ました」とだけ伝えて、詳細は受付の方から聞かれたら答える形で、指示を待つ", verdict: "ok", points: 1 },
+        { text: "約束相手の名前を出すのが確実なので、名乗らずに「人事の◯◯さんはいらっしゃいますか」と担当者名だけを告げる", verdict: "bad", points: 0 },
+        { text: "受付を煩わせないよう声はかけず、ロビーの椅子に座って担当者が迎えに来るのを静かに待つ", verdict: "bad", points: 0 },
+        { text: "「本日◯時に面接のお約束をいただいております◯◯と申します。ご担当の◯◯様をお願いいたします」と伝える", verdict: "best", points: 2 },
+        { text: "受付は形式的な場なので通さず、事前にもらった担当者の連絡先に「到着しました」とメッセージを直接送る", verdict: "bad", points: 0 }
+      ],
+      explanation: {
+        consensus: "受付では「挨拶・フルネーム・用件（面接の約束）・担当者名」の4点を一息で伝えるのが基本形で、各社ほぼ一致。受付対応も評価対象という認識が転職メディア間で共通（面接官が受付スタッフに応募者の様子を確認する場合がある）。",
+        schools: "名乗り方そのものに対立説はない。近年は無人受付＋内線電話のケースが増えており、案内表示の内線番号から同じ型で名乗る。",
+        practice: "受付に名乗り出るのは面接時刻の5〜10分前。それより早く着いた場合は建物の外やカフェで時間調整する（10分以上前の受付は先方の業務を中断させるため避ける）。"
+      },
+      source: "調査項目28・27"
+    },
+    {
+      id: "m_q03", scene: null, usage: "quiz", topic: "面接中の所作",
+      prompt: "着席を促され、椅子に座りました。持参したビジネスバッグの置き場所として最も適切なのはどれですか。",
+      choices: [
+        { text: "書類をすぐ取り出せるように、膝の上に置いたまま面接を受ける", verdict: "bad", points: 0 },
+        { text: "椅子の横の床に、倒れないよう自立させて置く", verdict: "best", points: 2 },
+        { text: "床は汚れが気になるので、隣の空いている椅子の座面の上に置かせてもらう", verdict: "bad", points: 0 },
+        { text: "面接官から見える位置が誠実なので、机の上の端に置く", verdict: "bad", points: 0 },
+        { text: "邪魔にならないよう、背もたれと自分の背中の間に挟んで固定する", verdict: "bad", points: 0 }
+      ],
+      explanation: {
+        consensus: "バッグは椅子の横の床に自立させて置くのが基本。机や隣の椅子は面接官側のスペースであり、膝上は落ち着きがない印象を与える。",
+        schools: "左右どちらに置くかは利き手や部屋のレイアウトによるとされ、厳密な決まりはない（ここは減点対象になりにくい）。",
+        practice: "自立しない柔らかいバッグは倒れて所作が乱れる原因になるため、面接には自立型を選ぶと安全。書類を出す想定がある場合は、取り出しやすい向きで置く。"
+      },
+      source: "調査項目08"
+    },
+    {
+      id: "t_q01", scene: null, usage: "quiz", topic: "退職理由の伝え方",
+      prompt: "面接官「今回、転職を考えられた理由を教えてください」。あなたの本音は「残業が多くて疲れた」です。最も評価を下げにくい答え方はどれですか。",
+      choices: [
+        { text: "「残業が多くプライベートの時間がほとんど取れなかったため、ワークライフバランスを大切にできる環境を求めて転職を決めました」", verdict: "ok", points: 1 },
+        { text: "「特に大きな不満があったわけではないのですが、社会人経験も長くなってきたので、そろそろ環境を変えてみたいと思いました」", verdict: "bad", points: 0 },
+        { text: "「上司が残業を美徳とするタイプで、帰りづらい空気を作る人でした。その体質に限界を感じたのが正直なところです」", verdict: "bad", points: 0 },
+        { text: "「本当の理由は少し言いにくいので、面接では前向きにキャリアアップのため、ということでお願いできればと思います」", verdict: "bad", points: 0 },
+        { text: "「時間の長さで評価される環境に課題を感じ、自分なりに効率化を提案してきました。今後は仕事の質を評価する環境で力を発揮したいと考えています」", verdict: "best", points: 2 }
+      ],
+      explanation: {
+        consensus: "不満をそのまま伝えると「うちでも同じ理由で辞めるのでは」と受け取られる。事実は偽らず、①課題を客観的に述べ ②自分で改善行動を起こした事実を添え ③次に実現したい働き方へ前向きに変換する、の3点セットが定石。",
+        schools: "ワークライフバランスを理由にすること自体をNGとする説と、改善努力や健康面への配慮を添えれば問題ないとする説がある。単なる不満に聞こえる伝え方が問題であり、理由そのものが問題ではないという見方が実務では優勢。",
+        practice: "面接官の質問意図は「早期離職リスクの確認」と「自社とのマッチング確認」。嘘の理由は深掘りで矛盾が出るため作らない。人のせい（上司・会社）にする表現は責任感の欠如と受け取られやすく、最も避けるべき型。"
+      },
+      source: "doda・リクルートエージェント・マイナビ転職・type"
+    },
+    {
+      id: "t_q02", scene: null, usage: "quiz", topic: "退職理由の伝え方",
+      prompt: "面接官「今おっしゃった残業の件ですが、弊社でも繁忙期には残業が発生します。問題ありませんか？」。最も評価を下げにくい答え方はどれですか。",
+      choices: [
+        { text: "「繁忙期の残業は業務の性質上あるものと理解しています。私が課題と感じていたのは恒常的な長時間労働なので、問題ありません」", verdict: "best", points: 2 },
+        { text: "「正直に申し上げると残業はもうしたくないので、繁忙期であっても定時で帰れる部署への配属を希望したいです」", verdict: "bad", points: 0 },
+        { text: "「はい、大丈夫です」と簡潔に即答し、余計なことは付け加えずに次の質問を待つ", verdict: "ok", points: 1 },
+        { text: "「そこは入社前に確認しておきたかった点です。御社でも残業が常態化しているなら、正直また考え直すかもしれません」", verdict: "bad", points: 0 },
+        { text: "「前職ほどではないと信じています」と少し冗談めかして笑いを取り、場を和ませてから次に進む", verdict: "bad", points: 0 }
+      ],
+      explanation: {
+        consensus: "この質問は退職理由の「鏡返し」型深掘りで、面接官は入社後のミスマッチ耐性を確認している。自分が問題視していた点（恒常的か一時的か）を切り分けて答えると、条件反射の不満ではなく軸のある判断だと伝わる。",
+        schools: "「大丈夫です」の一言回答を無難とする見方もあるが、根拠がないと表面的に聞こえるため、切り分けを一言添える方が説得力が出るという見解が実務では多い。",
+        practice: "「転職理由が残業なら、弊社の繁忙期は問題ないか」という確認はエージェント各社が頻出深掘りとして挙げる定番。想定していないと詰まりやすい質問の代表格。"
+      },
+      source: "ASSIGNメディア（鏡返し型深掘り）"
+    },
+    {
+      id: "m_q04", scene: null, usage: "quiz", topic: "Web面接",
+      prompt: "Web面接の途中、回線トラブルで接続が切れてしまいました。最も適切な対応はどれですか。",
+      choices: [
+        { text: "再接続できたので、これ以上時間を無駄にしないよう、トラブルには触れず何事もなかったように話の続きから再開する", verdict: "bad", points: 0 },
+        { text: "自分ではどうにもできないので、いったん席を離れて落ち着き、企業側から電話かメールが来るのを待つ", verdict: "bad", points: 0 },
+        { text: "まず案内メールのURLから再入室を試み、復帰したら第一声でお詫びする。数分戻れなければ緊急連絡先へ電話する", verdict: "best", points: 2 },
+        { text: "つながらない状況をとにかく早く伝えるため、チャットとメールの両方で「接続できません」と送り、返信を待ち続ける", verdict: "ok", points: 1 },
+        { text: "動揺したまま続けても良い結果にならないので、その日は諦めて、翌日に改めて事情説明とお詫びのメールを送る", verdict: "bad", points: 0 }
+      ],
+      explanation: {
+        consensus: "切れたらまず落ち着いて再入室を試み、復帰したら第一声でお詫びと簡単な状況説明。数分以上復帰できない場合は速やかに緊急連絡先（電話）へ連絡する——この手順で各社一致。",
+        schools: "対立説はほぼなし。「何分で電話に切り替えるか」の目安（数分〜5分）に媒体差がある程度。",
+        practice: "通信トラブル自体を選考に直結させる企業は多くなく、評価されるのは「その後の対応」。相手側原因のトラブルでも自分からお詫びするのが無難とされる。事前準備として、案内メールの緊急連絡先をスマホに控えておくことが実務上の必須とされる。"
+      },
+      source: "調査項目25"
+    },
+    {
+      id: "t_q03", scene: null, usage: "quiz", topic: "弱みの伝え方",
+      prompt: "面接官「ご自身の弱みを教えてください」。最も評価を下げにくい答え方はどれですか。",
+      choices: [
+        { text: "「あえて挙げるなら、弱みは特にない、というのが弱みかもしれません。大抵のことは強みでカバーできてきました」", verdict: "bad", points: 0 },
+        { text: "「完成度にこだわり時間を使いすぎる点です。以前それで確認が遅れた反省から、今は締め切りを先に決め8割段階で一度共有しています」", verdict: "best", points: 2 },
+        { text: "「正直にお話しすると朝が弱く、前職でも遅刻が多いのが課題でした。目覚ましを増やすなど改善には取り組んでいます」", verdict: "bad", points: 0 },
+        { text: "「こだわりが強いところです」と端的に一言で答え、深掘りされたら詳しく話す", verdict: "ok", points: 1 },
+        { text: "「弱みというのは見る人の立場で変わる相対的なものなので、一概に答える意味は薄い質問だと考えています」", verdict: "bad", points: 0 }
+      ],
+      explanation: {
+        consensus: "弱みの質問で見られているのは自己認識力と改善行動。①弱みを具体的に認める ②業務に影響した場面 ③現在の対処法、の3点で答えるのが定石。「弱みはない」は自己認識の欠如と受け取られる。",
+        schools: "「強みの裏返し」として語る型を推す説と、露骨な裏返しは準備した模範回答に聞こえるという説がある。裏返し自体より「対処法まで語れるか」が評価の分かれ目という見方が優勢。",
+        practice: "業務の根幹に関わる弱み（遅刻癖・虚偽・協調性の欠如など）は正直に言えば良いというものではなく、職務適性を直撃する内容は選ばない。対処済みで再発防止の仕組みがある弱みを選ぶのが実務的。"
+      },
+      source: "転職メディア各社の弱み回答解説"
+    },
+    {
+      id: "t_q04", scene: null, usage: "quiz", topic: "選考状況の伝え方",
+      prompt: "面接官「他社の選考状況を教えてください」。実際には同業界2社の選考が進んでいます。最も評価を下げにくい答え方はどれですか。",
+      choices: [
+        { text: "「同じ軸で同業界2社の選考が進んでいますが、その中でも御社が第一志望です」と、軸と志望度をセットで伝える", verdict: "best", points: 2 },
+        { text: "「志望度の高さを伝えるためにも、御社しか受けておりません」と答える（実際は2社が進行中）", verdict: "bad", points: 0 },
+        { text: "「選考状況は他社との関係もありますので、申し訳ありませんがお答えは控えさせてください」と丁重に回答を断る", verdict: "bad", points: 0 },
+        { text: "「2社受けています」と事実だけを短く答え、詳細や志望順位は聞かれるまで自分からは言わない", verdict: "ok", points: 1 },
+        { text: "「実は他社の方が提示条件が良く、迷っています」と正直に明かし、条件面の相談につなげる", verdict: "bad", points: 0 }
+      ],
+      explanation: {
+        consensus: "複数応募は当然の前提として面接官も理解しており、隠す必要はない。この質問の意図は「転職の軸の一貫性」と「内定辞退リスク」の確認。選考中の他社が同じ軸で説明できると、軸のある転職活動だと伝わる。",
+        schools: "第一志望と言い切るべきかは見解が分かれる（入社意思が固まっていない段階で言い切ることへの慎重論もある）。ただし「見え透いた嘘（御社しか受けていない）」がマイナスである点は一致。",
+        practice: "他社状況は正直に、ただし社名まで言う義務はない。「同業界で◯社」程度の粒度で十分。条件交渉のカードとして使うのは最終面接後のオファー面談の領分で、選考中に出すと志望度を疑われる。"
+      },
+      source: "JAC・エージェント系解説"
+    },
+    {
+      id: "m_q05", scene: null, usage: "quiz", topic: "退室",
+      prompt: "面接が終わり、退室する場面です。最も適切な流れはどれですか。",
+      choices: [
+        { text: "面接官の手を煩わせないよう、立ち上がったらすみやかにドアへ向かい、ドアの前で深く一礼してから退室する", verdict: "ok", points: 1 },
+        { text: "感謝を最後まで伝えるため、お礼を言いながら面接官の方を向いたまま後ろ歩きでドアまで下がり、退室する", verdict: "bad", points: 0 },
+        { text: "余韻を残さないのがスマートなので、軽く会釈だけして、面接官に背を向けて静かに退室する", verdict: "bad", points: 0 },
+        { text: "最後が一番記憶に残るので、退室の直前にもう一度、要点を絞った自己PRを付け加えてから部屋を出る", verdict: "bad", points: 0 },
+        { text: "着席のままお礼を述べて一礼→立って椅子の横で一礼→ドア前で向き直り「失礼いたします」と一礼して退室する", verdict: "best", points: 2 }
+      ],
+      explanation: {
+        consensus: "退室は「座礼（お礼）→椅子横で立礼→ドア前で向き直って一礼」の3段階が基本形。リクルート・doda・マイナビがほぼ同一手順を提示しており、通説一択に近い。",
+        schools: "省略を推す説は見当たらない。媒体差は「最初の礼を着席のまま入れるか、立ってから入れるか」の細部のみ。「やりすぎでは」という疑問に対しても媒体側は「省略せず徹底」と明言している。",
+        practice: "ドアは外に出てから向き直り、面接官側に半身を残す姿勢で、後ろ手を使わず両手で静かに閉める。建物を出るまでが面接——退室後もスマホ・電話・私語は控える（見送りの間の態度も評価対象になりうる）。"
+      },
+      source: "調査項目16・17・18"
+    },
+    {
+      id: "rq01", scene: "reverse_q", usage: "both", topic: "逆質問",
+      prompt: "面接官「最後に、何かご質問はありますか？」——この場面で最も評価を下げにくい対応はどれですか。",
+      choices: [
+        { text: "「特にありません。本日のご説明で十分理解できましたので」と、簡潔に締めて面接官の時間を尊重する", verdict: "bad", points: 0 },
+        { text: "「あらためて、御社の主な事業内容について教えていただけますか」と、関心の高さを質問で示す", verdict: "bad", points: 0 },
+        { text: "「残業は月平均どのくらいですか。有給は取りやすい雰囲気ですか」と、働き方の実態を続けて確認する", verdict: "bad", points: 0 },
+        { text: "「入社までに学んでおくべきことがあれば教えてください」と尋ねる", verdict: "best", points: 2 },
+        { text: "「私は御社で必ず活躍できると考えていますが、率直にいかがでしょうか」と、逆に自分を売り込む", verdict: "ok", points: 1 }
+      ],
+      explanation: {
+        consensus: "「特にありません」は入社意欲が低いと受け取られやすく、避けるのが通説。調べれば分かる質問（事業内容）は準備不足の印象を与える。条件面ばかりの質問もネガティブに取られやすい。学ぶ姿勢を示す質問が最も減点リスクが低い。",
+        schools: "条件面の質問自体をNGとする説と、聞き方次第（「長く働くために確認したい」等の前置き）で問題ないとする説がある。全面NGではなく「条件面だけで終わる」ことが問題という見方が実務では多い。",
+        practice: "実務では逆質問を3〜5個準備し、面接中に解消された質問を飛ばして残りから優先度順に聞くのが定石。最終面接では入社後の活躍を前提にした質問（期待される役割・評価基準）が好まれる傾向。"
+      },
+      source: "大手転職メディア各社の逆質問解説"
+    }
+  ],
+
+  quizDeck: {
+    questionIds: ["m_q01","m_q02","m_q03","t_q01","t_q02","m_q04","t_q03","t_q04","m_q05","rq01"],
+    rankTable: [
+      { min: 0,  max: 49,  rank: "C", comment: "現状のまま本番に臨むと、回答の中身以前の部分で損をする可能性が高い状態です。まず所作と頻出質問の型を一通り押さえてから応募に進むのが近道です。" },
+      { min: 50, max: 69,  rank: "B", comment: "知っている部分と我流の部分が混在しています。特に「伝え方」系の失点は面接官の懸念に直結するため、弱点カテゴリの型を先に固めましょう。" },
+      { min: 70, max: 89,  rank: "A", comment: "基礎は固まっています。弱点に出たカテゴリだけ集中的に潰せば、面接が通過率のボトルネックになることはなくなります。" },
+      { min: 90, max: 100, rank: "S", comment: "面接対応力は完成域です。あとは本番の場数と、応募先ごとの固有対策（企業研究・逆質問の個別化）に時間を使いましょう。" }
+    ],
+    topicComments: {
+      "選考前の対応":     { good: "当日のトラブル対応は問題なし。緊急時の連絡判断ができています。", bad: "当日トラブル時の連絡判断に穴があります。「まず電話」の原則が抜けると、面接前から評価を落とします。" },
+      "受付・入室前":     { good: "受付対応は完璧です。選考は受付から始まっている、という意識が持てています。", bad: "受付での名乗りが我流になっています。挨拶・名前・用件・担当者名の4点セット、型として固めましょう。" },
+      "面接中の所作":     { good: "面接中の所作は減点なし。落ち着いて回答に集中できる状態です。", bad: "持ち物の扱いなど、着席中の所作で損をしています。知っていれば失わない点です。" },
+      "退職理由の伝え方": { good: "退職理由の伝え方は合格水準。不満を前向きな軸に変換できています。", bad: "退職理由の伝え方が最大のリスクです。ここは面接官が「また辞めないか」を判定する急所で、我流のままだと深掘りで崩れます。" },
+      "Web面接":          { good: "Web面接のトラブル対応は問題なし。オンラインでも落ち着いて対処できます。", bad: "Web面接特有のマナーに抜けがあります。対面の常識だけでは拾えない領域です。" },
+      "弱みの伝え方":     { good: "弱みの答え方は模範的。自己認識と改善行動をセットで語れています。", bad: "弱みの質問で自滅するパターンです。「弱み＋対処法」の型を持たないと、正直さがそのまま減点になります。" },
+      "選考状況の伝え方": { good: "他社状況の答え方は適切。軸のある転職活動として伝えられています。", bad: "他社選考の答え方が危険です。隠す・断る・交渉に使う、はいずれも志望度への疑念に直結します。" },
+      "退室":             { good: "退室の所作は問題なし。最後の印象まで作れています。", bad: "退室手順に自己流が混ざっています。最後の30秒は面接官の記憶に残りやすい時間です。" },
+      "逆質問":           { good: "逆質問の選び方は的確。意欲が伝わる締め方ができています。", bad: "逆質問で意欲を疑われるパターンを選んでいます。ここは事前準備だけで満点が取れる、最ももったいない失点です。" }
+    },
+    weakAdvice: {
+      "選考前の対応":     "面接前日に「緊急連絡先を電話帳に登録する」だけで、この弱点は当日消せます。",
+      "受付・入室前":     "受付の名乗り文句を1つ暗記してください。「本日◯時にお約束の◯◯です。◯◯様をお願いします」——これだけで固まりません。",
+      "面接中の所作":     "面接前夜に所作の解説を一度読み直すだけで防げる失点です。この診断の解説を見返してください。",
+      "退職理由の伝え方": "「課題→自分で動いた事実→次に実現したいこと」の3点で退職理由を書き直し、声に出して練習してください。ここが固まると面接全体が安定します。",
+      "Web面接":          "次のWeb面接の前に、緊急連絡先の控えと再入室手順の確認を。準備だけで解決する弱点です。",
+      "弱みの伝え方":     "「対処済みの弱み」を1つ用意してください。弱み・影響した場面・今の対処法、の3点で60秒で話せる形に。",
+      "選考状況の伝え方": "「同じ軸で◯社」＋「その中でも御社」の型を用意してください。嘘も拒否も不要になります。",
+      "退室":             "「座って礼→立って礼→ドア前で礼」の3段階を体で1回リハーサルしてください。頭で知っているだけだと本番で飛びます。",
+      "逆質問":           "逆質問を3〜5個、今日中にメモしてください。この診断の解説にNGパターンも載っています。"
+    },
+    cta: {
+      lead: "この診断で見えた弱点は、正しい順番で潰せば短期間で消せます。全設問のさらに詳しい解説、頻出質問への答え方の型、そして一人で対策しきれない部分をプロに任せる選択肢まで、配布元のnoteにまとめてあります。",
+      button: "弱点の潰し方を読む（無料）",
+      url: "{{NOTE_URL}}"
+    },
+    resultCta: "この診断は無料配布版です。続きは配布元のnoteをご覧ください。"
+  },
+
+  qaBank: [],
+
+  knowledge: [],
+
+  improvementTemplates: {
+    manner:       "入退室・逆質問など定型マナーで失点しています。所作は知っているかどうかだけで差がつく領域です。失点した場面の型を一つずつ固め直しましょう。",
+    length_short: "回答が短く、面接官に判断材料を渡せていません。短い回答は深掘りの連続を招きます。「結論→理由→具体例」の3点セットで、1回答を今の1.5〜2倍の厚みにしましょう。",
+    length_long:  "回答が長く、要点が埋もれています。面接官が覚えられるのは各回答の1〜2点だけです。まず結論を一文で言い切り、理由と例を短く添える形に圧縮しましょう。",
+    conclusion:   "結論から話せていません。冒頭に説明や背景が来ると、面接官は「結局何が言いたいのか」を探しながら聞くことになります。第一声を「結論から申しますと」で始める練習が有効です。",
+    example:      "回答に具体例が不足しています。実体験の裏付けがない回答は「そうありたい話」に聞こえます。各回答に「例えば」で始まる実際の場面をひとつ入れることを習慣にしましょう。",
+    consistency:  "退職理由と志望動機がつながって聞こえません。面接官は「辞めた理由」と「この会社を選んだ理由」が一本の線になっているかを最も見ています。「前職で実現できなかったこと→だからそれができる御社」の形に組み直しましょう。",
+    balance:      "面接の後半で回答が痩せています。終盤の質問ほど評価の確認に使われるため、尻すぼみは「息切れ」の印象を残します。後半に山場が来る前提でペース配分を意識しましょう。",
+    solid:        "この軸に大きな失点はありません。細部の言い回しと間の取り方を磨けば、さらに安定します。"
+  },
+
+  aiReviewTemplate: {
+    header: "あなたは中途採用の面接官経験が豊富なキャリアコーチです。以下は面接シミュレーターでの私の模擬面接ログと自動採点です。実際の面接で落ちないことを目的に、厳しめに添削してください。",
+    footer: "添削の依頼内容：\n1. 各回答について、面接官がどんな懸念を持つかを1つずつ指摘してください\n2. 最も弱い回答を1つ選び、私の実体験の範囲で作り直した改善例を書いてください（事実の捏造はせず、構成だけを直す）\n3. 退職理由と志望動機の一貫性を確認し、つながりが弱ければ「一本の線」になる語り方を提案してください\n4. 次の模擬面接で試すべきことを3つ、優先順に挙げてください"
+  },
+
+  images: {}
+};
+
+/* ============================================================
+   ストレージ（localStorage / メモリフォールバック）
+   ============================================================ */
+var Store = (function(){
+  var PREFIX="ivs_", mem={}, ok=false;
+  try{ var k="ivs_test"; localStorage.setItem(k,"1"); localStorage.removeItem(k); ok=true; }catch(e){ ok=false; }
+  function get(key,def){
+    try{
+      var raw = ok ? localStorage.getItem(PREFIX+key) : (mem[key]!==undefined?mem[key]:null);
+      return raw==null ? def : JSON.parse(raw);
+    }catch(e){ return def; }
+  }
+  function set(key,val){
+    var raw=JSON.stringify(val);
+    try{ if(ok) localStorage.setItem(PREFIX+key,raw); else mem[key]=raw; }
+    catch(e){ mem[key]=raw; }
+  }
+  function del(key){ try{ if(ok) localStorage.removeItem(PREFIX+key); else delete mem[key]; }catch(e){} }
+  return { get:get, set:set, del:del, available:ok };
+})();
+
+/* 履歴 20件 FIFO */
+function loadHistory(){ return Store.get("history",[]); }
+function saveSession(sess){
+  var h=loadHistory(); h.unshift(sess); if(h.length>20) h=h.slice(0,20); Store.set("history",h);
+}
+/* セッション通し番号（周回選抜の決定論シード） */
+function nextSerial(){ var n=Store.get("serial",0)+1; Store.set("serial",n); return n; }
+function currentSerial(){ return Store.get("serial",0); }
+
+/* ============================================================
+   テキスト解析（簡易形態素：2文字以上のカタカナ/漢字連続を語に）
+   ============================================================ */
+function extractNouns(text){
+  if(!text) return [];
+  var re=/[ァ-ヶー]{2,}|[一-龥々〆ヵヶ]{2,}/g, m, out=[];
+  while((m=re.exec(text))!==null){ out.push(m[0]); }
+  return out;
+}
+function jaccard(aText,bText){
+  var A=new Set(extractNouns(aText)), B=new Set(extractNouns(bText));
+  if(A.size===0||B.size===0) return 0;
+  var inter=0; A.forEach(function(x){ if(B.has(x)) inter++; });
+  var uni=A.size+B.size-inter;
+  return uni===0?0:Math.round(inter/uni*100);
+}
+function stdev(arr){
+  if(arr.length<2) return 0;
+  var mean=arr.reduce(function(a,b){return a+b;},0)/arr.length;
+  var v=arr.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/arr.length;
+  return Math.sqrt(v);
+}
+
+/* ============================================================
+   周回選抜（決定論）：serial % pool長 を開始位置に巡回
+   ============================================================ */
+function cyclicSelect(pool, count, serial){
+  if(pool.length===0) return [];
+  var n=Math.min(count,pool.length), start=((serial%pool.length)+pool.length)%pool.length, out=[];
+  for(var i=0;i<n;i++){ out.push(pool[(start+i)%pool.length]); }
+  return out;
+}
+
+/* ============================================================
+   採点ロジック（決定論・AI/乱数なし）
+   ============================================================ */
+/* trial: 5択 points 合計→100換算＋rank＋topic内訳＋弱点 */
+function scoreQuiz(answers){
+  var got=0, max=0, byTopic={};
+  answers.forEach(function(a){
+    got+=a.points; max+=2;
+    if(!byTopic[a.topic]) byTopic[a.topic]={got:0,max:0};
+    byTopic[a.topic].got+=a.points; byTopic[a.topic].max+=2;
+  });
+  var score=max>0?Math.round(got/max*100):0;
+  var rank=GAME_DATA.quizDeck.rankTable.find(function(r){return score>=r.min&&score<=r.max;})||GAME_DATA.quizDeck.rankTable[0];
+  var topics=Object.keys(byTopic).map(function(t){
+    return { topic:t, rate:byTopic[t].max>0?Math.round(byTopic[t].got/byTopic[t].max*100):0 };
+  });
+  var weak=topics.slice().sort(function(x,y){return x.rate-y.rate;}).slice(0,2);
+  return { score:score, rank:rank, topics:topics, weak:weak };
+}
+
+/* full: 3軸100点＋改善点3つ
+   qaAnswers: [{category, text, isProbe}] （本回答＋深掘り）
+   mannerAnswers: [{points}]                （シーン内＋逆質問5択）
+*/
+function scoreFull(qaAnswers, mannerAnswers){
+  /* 1. マナー軸 */
+  var mGot=0,mMax=0;
+  mannerAnswers.forEach(function(a){ mGot+=a.points; mMax+=2; });
+  var mannerScore=mMax>0?Math.round(mGot/mMax*100):0;
+
+  /* 2. 回答形式軸 */
+  var perAns=[], lenFlags={short:0,long:0}, concFail=0, exFail=0;
+  qaAnswers.forEach(function(a){
+    var len=a.text.replace(/\s/g,"").length;
+    // (a) 文字数レンジ
+    var lenScore;
+    if(len>=80&&len<=400) lenScore=100;
+    else if(len<80){ lenScore=Math.round(len/80*100); lenFlags.short++; }
+    else { lenScore=Math.max(0,Math.round(100-(len-400)*100/400)); lenFlags.long++; }
+    // (b) 結論先行：冒頭80字内に conclusion キーワード
+    var head=a.text.slice(0,80);
+    var conc=(a.keywords.conclusion||[]).some(function(k){return head.indexOf(k)>=0;});
+    if(!conc) concFail++;
+    // (c) 具体例：example キーワード1つ以上
+    var ex=(a.keywords.example||[]).some(function(k){return a.text.indexOf(k)>=0;});
+    if(!ex) exFail++;
+    perAns.push(Math.round((lenScore+(conc?100:0)+(ex?100:0))/3));
+  });
+  var formScore=perAns.length?Math.round(perAns.reduce(function(x,y){return x+y;},0)/perAns.length):0;
+
+  /* 3. 一貫性軸 */
+  function catText(cat){
+    return qaAnswers.filter(function(a){return a.category===cat&&!a.isProbe;}).map(function(a){return a.text;}).join(" ");
+  }
+  var resig=catText("resignation"), moti=catText("motivation"), pr=catText("selfPR");
+  var main=jaccard(resig,moti);            // 主判定
+  var sub=jaccard(pr,moti);                // 副判定
+  var lens=qaAnswers.filter(function(a){return !a.isProbe;}).map(function(a){return a.text.replace(/\s/g,"").length;});
+  var meanLen=lens.length?lens.reduce(function(x,y){return x+y;},0)/lens.length:0;
+  var cv=meanLen>0?stdev(lens)/meanLen:0;
+  var balanceScore=Math.max(0,Math.round(100-cv*100));   // ばらつき小さいほど高
+  var consistScore=Math.round(main*0.5 + sub*0.3 + balanceScore*0.2);
+
+  /* 改善点3つ（各軸の最大失点要因→テンプレ選択） */
+  var T=GAME_DATA.improvementTemplates, imp=[];
+  imp.push(mannerScore<70 ? T.manner : (formScore<70?T.example:T.solid));
+  // 形式軸の要因
+  if(concFail>=exFail && concFail>0) imp.push(T.conclusion);
+  else if(exFail>0) imp.push(T.example);
+  else if(lenFlags.short>lenFlags.long && lenFlags.short>0) imp.push(T.length_short);
+  else if(lenFlags.long>0) imp.push(T.length_long);
+  else imp.push(T.solid);
+  // 一貫性軸の要因
+  if(main<50) imp.push(T.consistency);
+  else if(balanceScore<70) imp.push(T.balance);
+  else imp.push(T.solid);
+  // 重複整理＋3つ確保
+  imp=dedupeKeep3(imp, T);
+
+  return {
+    manner:mannerScore, form:formScore, consist:consistScore,
+    detail:{ main:main, sub:sub, balance:balanceScore, concFail:concFail, exFail:exFail, lenFlags:lenFlags },
+    improvements:imp
+  };
+}
+function dedupeKeep3(arr, T){
+  var seen={}, out=[];
+  arr.forEach(function(x){ if(!seen[x]){ seen[x]=1; out.push(x); } });
+  var pool=[T.solid,T.conclusion,T.example,T.consistency,T.balance,T.length_short];
+  var pi=0;
+  while(out.length<3 && pi<pool.length){ if(!seen[pool[pi]]){ seen[pool[pi]]=1; out.push(pool[pi]); } pi++; }
+  return out.slice(0,3);
+}
+
+/* ============================================================
+   AI添削プロンプト生成＋クリップボード
+   ============================================================ */
+function buildReviewLog(sess){
+  var t=GAME_DATA.aiReviewTemplate, L=[];
+  L.push(t.header); L.push("");
+  // A-2: 添削AIに面接文脈を渡す（sel優先・履歴のトップレベル値をフォールバック）
+  var cond=sess.sel||{ jobType:sess.jobType, stage:sess.stage };
+  L.push("■ 面接条件");
+  L.push("ジョブタイプ: "+(cond.jobType||"-")+" / 選考段階: "+(cond.stage||"-")+" / 面接官: "+(sess.persona||"-"));
+  L.push("");
+  L.push("■ 面接ログ");
+  sess.transcript.forEach(function(x){ L.push("Q: "+x.q); L.push("A: "+x.a); });
+  L.push(""); L.push("■ 自動採点");
+  L.push("マナー軸: "+sess.scores.manner+" / 回答形式軸: "+sess.scores.form+" / 一貫性軸: "+sess.scores.consist);
+  L.push("改善点: "+sess.scores.improvements.join(" / "));
+  L.push(""); L.push(t.footer);
+  return L.join("\n");
+}
+function copyText(text, okMsg){
+  function fallback(){
+    try{
+      var ta=document.createElement("textarea");
+      ta.value=text; ta.style.position="fixed"; ta.style.top="-1000px";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      document.execCommand("copy"); document.body.removeChild(ta); toast(okMsg||"コピーしました");
+    }catch(e){ toast("コピーに失敗。手動で選択してください"); }
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){toast(okMsg||"コピーしました");}, fallback);
+  } else fallback();
+}
+
+/* ============================================================
+   プレースホルダー画像描画（グラデ＋シルエット）
+   images[imgId] があればそれを、なければ id ハッシュでグラデ生成
+   ============================================================ */
+function hashHue(id){ var h=0; for(var i=0;i<id.length;i++){ h=(h*31+id.charCodeAt(i))%360; } return h; }
+function sceneImgHTML(imgId){
+  var real=GAME_DATA.images[imgId];
+  if(real){ return '<div class="ph-bg" style="background-image:url('+real+');background-size:cover;background-position:center"></div>'; }
+  var hue=hashHue(imgId||"bg"), h2=(hue+40)%360;
+  var bg='linear-gradient(160deg,hsl('+hue+',32%,30%),hsl('+h2+',36%,46%))';
+  return ''+
+    '<div class="ph-bg" style="background:'+bg+'"></div>'+
+    '<div class="ph-tag">IMG: '+ (imgId||"?") +'</div>'+
+    '<svg class="ph-silhouette" viewBox="0 0 150 190" aria-hidden="true">'+
+      '<ellipse cx="75" cy="58" rx="30" ry="34" fill="rgba(255,255,255,.22)"/>'+
+      '<path d="M20 190 C20 128 45 104 75 104 C105 104 130 128 130 190 Z" fill="rgba(255,255,255,.22)"/>'+
+    '</svg>';
+}
+
+/* ============================================================
+   画面ルーター / 状態
+   ============================================================ */
+var app=document.getElementById("app");
+var S={};   // ランタイム状態（面接進行など）
+
+function h(html){ app.innerHTML=html; }
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function toast(msg){
+  var t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity="0"; setTimeout(function(){t.remove();},250); },1500);
+}
+function topbar(title, onBack){
+  return '<div class="topbar">'+
+    (onBack?'<button class="ico" id="backBtn">‹</button>':'<span class="ico" style="opacity:.4">◈</span>')+
+    '<span class="title">'+esc(title)+'</span></div>';
+}
+function bindBack(fn){ var b=document.getElementById("backBtn"); if(b) b.onclick=fn; }
+
+/* ---------- ルートタイトル（エディション選択） ---------- */
+function screenTitle(){
+  if(CONFIG.edition==="trial") return startTrial();  // B-5/§7: ja trialでは完全版導線を一切出さない
+  h(
+    '<div class="screen scroll">'+
+      '<div class="hero">'+
+        '<div class="logo"><svg viewBox="0 0 192 192"><circle cx="96" cy="72" r="34" fill="#fff"/><rect x="44" y="118" width="104" height="58" rx="29" fill="#fff"/></svg></div>'+
+        '<h1>面接シミュレーター</h1>'+
+        '<div class="sub">受付から退室まで、本番の手順で練習する</div>'+
+      '</div>'+
+      '<div class="pad">'+
+        '<div class="card tap mode-card free" id="mTrial">'+
+          '<div class="badge">◎</div>'+
+          '<div><h3>面接力診断キット</h3><div class="muted">5択×10問・約5分。今の実力をスコア診断（無料）</div></div>'+
+        '</div>'+
+        '<div class="card tap mode-card" id="mFull">'+
+          '<div class="badge">▶</div>'+
+          '<div><h3>面接シミュレーター<span class="tiny muted">（完全版）</span></h3><div class="muted">シチュエーション選択→面接1周→総合評価</div></div>'+
+        '</div>'+
+        '<p class="tiny muted center" style="margin-top:18px">v1.0 エンジン / プレースホルダーデータ動作確認用<br>'+(Store.available?'':'※localStorage不可：履歴は保存されません')+'</p>'+
+      '</div>'+
+    '</div>'
+  );
+  document.getElementById("mTrial").onclick=function(){ CONFIG.edition="trial"; startTrial(); };
+  document.getElementById("mFull").onclick=function(){ CONFIG.edition="full"; screenFullHome(); };
+}
+
+/* ============================================================
+   TRIAL：診断キット
+   ============================================================ */
+function startTrial(){
+  var ids=GAME_DATA.quizDeck.questionIds;
+  var qs=ids.map(function(id){ return GAME_DATA.mannerQuestions.find(function(m){return m.id===id;}); }).filter(Boolean);
+  S.quiz={ list:qs, idx:0, answers:[] };
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  var q=S.quiz.list[S.quiz.idx], n=S.quiz.list.length, cur=S.quiz.idx+1;
+  h(
+    '<div class="screen">'+
+      topbar("診断 "+cur+" / "+n, screenTitle)+
+      '<div class="progress"><i style="width:'+(cur/n*100)+'%"></i></div>'+
+      '<div class="scroll grow pad">'+
+        '<div class="q-stem"><div class="q-topic">'+esc(q.topic)+'</div><div>'+esc(q.prompt)+'</div></div>'+
+        '<div id="choices"></div>'+
+      '</div>'+
+    '</div>'
+  );
+  bindBack(screenTitle);
+  renderChoices(q, function(ci){
+    var c=q.choices[ci];
+    S.quiz.answers.push({ id:q.id, topic:q.topic, choiceIdx:ci, points:c.points, verdict:c.verdict });
+    showExplanation(q, ci, function(){
+      if(S.quiz.idx<S.quiz.list.length-1){ S.quiz.idx++; renderQuizQuestion(); }
+      else renderQuizResult();
+    });
+  });
+}
+/* 共通：5択カード描画（trial診断・fullドリル・シーン内で流用） */
+function renderChoices(q, onPick){
+  var box=document.getElementById("choices"), keys=["A","B","C","D","E"];
+  box.innerHTML=q.choices.map(function(c,i){
+    return '<button class="choice" data-i="'+i+'"><span class="k">'+keys[i]+'</span><span>'+esc(c.text)+'</span></button>';
+  }).join("");
+  Array.prototype.forEach.call(box.querySelectorAll(".choice"),function(btn){
+    btn.onclick=function(){
+      var i=+btn.getAttribute("data-i"), v=q.choices[i].verdict;
+      Array.prototype.forEach.call(box.querySelectorAll(".choice"),function(b){ b.disabled=true; b.classList.add("dim"); });
+      btn.classList.remove("dim"); btn.classList.add("sel-"+v);
+      onPick(i);
+    };
+  });
+}
+/* 共通：3層解説モーダル */
+function showExplanation(q, ci, onNext){
+  var c=q.choices[ci], e=q.explanation;
+  var vlabel={best:"最適な選択",ok:"許容範囲",bad:"減点リスク"}[c.verdict];
+  var m=document.createElement("div"); m.className="modal-bg";
+  m.innerHTML=
+    '<div class="modal">'+
+      '<span class="verdict-pill vp-'+c.verdict+'">'+vlabel+'（+'+c.points+'）</span>'+
+      '<div class="layer consensus"><div class="lab">通説</div>'+esc(e.consensus)+'</div>'+
+      '<div class="layer schools"><div class="lab">諸説</div>'+esc(e.schools)+'</div>'+
+      '<div class="layer practice"><div class="lab">実務</div>'+esc(e.practice)+'</div>'+
+      (q.source?'<div class="src-note">出典: '+esc(q.source)+'</div>':'')+
+      '<button class="btn accent" id="nextQ" style="margin-top:14px">次へ</button>'+
+    '</div>';
+  document.body.appendChild(m);
+  document.getElementById("nextQ").onclick=function(){ m.remove(); onNext(); };
+}
+function renderQuizResult(){
+  var r=scoreQuiz(S.quiz.answers), qd=GAME_DATA.quizDeck;
+  var tc=qd.topicComments||{}, wa=qd.weakAdvice||{};
+  // topic別バー＋カテゴリ別一言診断（70%閾値で good/bad。データ無topicは何も出さない）
+  var barsHTML=r.topics.map(function(t){
+    var cc=tc[t.topic], line="";
+    if(cc){ var good=t.rate>=70; line='<div class="cat-comment '+(good?"good":"bad")+'">'+esc(good?cc.good:cc.bad)+'</div>'; }
+    return '<div class="bar-row"><div class="bl"><span>'+esc(t.topic)+'</span><span>'+t.rate+'%</span></div>'+
+           '<div class="bar"><i style="width:'+t.rate+'%"></i></div>'+line+'</div>';
+  }).join("");
+  // 弱点チップ＋処方箋（下位2topic。弱点→明日やることが対）
+  var weakHTML=r.weak.map(function(w){
+    var adv=wa[w.topic];
+    return '<div class="weak-block"><span class="weak-chip">'+esc(w.topic)+' '+w.rate+'%</span>'+
+           (adv?'<div class="weak-advice"><b>明日やること: </b>'+esc(adv)+'</div>':'')+'</div>';
+  }).join("");
+  // CTA（cta優先。無ければresultCtaにフォールバック）
+  var ctaHTML;
+  if(qd.cta){
+    ctaHTML='<div class="cta-box"><div class="cta-lead">'+esc(qd.cta.lead)+'</div>'+
+      '<a class="btn accent cta-btn" href="'+esc(qd.cta.url)+'" target="_blank" rel="noopener">'+esc(qd.cta.button)+'</a></div>';
+  } else {
+    ctaHTML='<div class="notice" style="margin-top:16px">'+esc(qd.resultCta)+'</div>';
+  }
+  // 全問振り返り（折りたたみ。開くと通説全文。正解は✓）
+  var reviewHTML=S.quiz.list.map(function(q,i){
+    var a=S.quiz.answers[i], e=q.explanation;
+    var best=q.choices.find(function(c){return c.verdict==="best";});
+    var mine=q.choices[a.choiceIdx];
+    var mark=a.verdict==="best"?'<span class="rv-ok">✓</span>':'<span class="rv-ng">×</span>';
+    var pshort=q.prompt.length>24?q.prompt.slice(0,24)+"…":q.prompt;
+    return '<details class="rv-item"><summary>'+mark+'<span class="rv-topic">'+esc(q.topic)+'</span><span class="rv-prompt">'+esc(pshort)+'</span></summary>'+
+      '<div class="rv-body">'+
+        '<div class="rv-line"><span class="verdict-pill vp-'+a.verdict+'">あなた: '+esc(mine?mine.text:"")+'</span></div>'+
+        (a.verdict!=="best"&&best?'<div class="rv-line"><span class="verdict-pill vp-best">最適解: '+esc(best.text)+'</span></div>':'')+
+        '<div class="layer consensus"><div class="lab">通説</div>'+esc(e.consensus)+'</div>'+
+      '</div></details>';
+  }).join("");
+  // 表示順: スコア/ランク→ランクコメント→topicバー＋一言→弱点＋処方箋→CTA→全問振り返り
+  h(
+    '<div class="screen scroll">'+
+      topbar("診断結果", screenTitle)+
+      '<div class="pad">'+
+        '<div class="score-hero">'+
+          '<div class="rank-badge">'+esc(r.rank.rank)+'</div>'+
+          '<div class="score-num">'+r.score+'<span style="font-size:20px">点</span></div>'+
+          '<div style="font-size:13px;opacity:.85;margin-top:8px">'+esc(r.rank.comment)+'</div>'+
+        '</div>'+
+        '<h3>カテゴリ別</h3>'+barsHTML+
+        '<h3 style="margin-top:16px">重点的に見直したい弱点</h3>'+weakHTML+
+        ctaHTML+
+        '<h3 style="margin-top:18px">全問の振り返り</h3>'+
+        '<p class="tiny muted" style="margin-top:-4px">タップで解説（通説）が開きます</p>'+
+        reviewHTML+
+        '<div class="btn-row"><button class="btn accent" id="again">もう一度</button>'+
+        '<button class="btn ghost" id="review">解説を見返す</button></div>'+
+        '<button class="btn ghost" id="home" style="margin-top:10px">タイトルへ</button>'+
+      '</div>'+
+    '</div>'
+  );
+  bindBack(screenTitle);
+  document.getElementById("again").onclick=startTrial;
+  document.getElementById("review").onclick=function(){ renderQuizReview(); };
+  document.getElementById("home").onclick=screenTitle;
+}
+function renderQuizReview(){
+  h('<div class="screen scroll">'+topbar("解説一覧", renderQuizResult)+'<div class="pad" id="rv"></div></div>');
+  bindBack(renderQuizResult);
+  var box=document.getElementById("rv");
+  box.innerHTML=S.quiz.list.map(function(q,i){
+    var a=S.quiz.answers[i], e=q.explanation;
+    return '<div class="card"><div class="q-topic">'+esc(q.topic)+'</div><div style="font-weight:700;margin-bottom:8px">'+esc(q.prompt)+'</div>'+
+      '<span class="verdict-pill vp-'+a.verdict+'">あなた: '+({best:"最適",ok:"許容",bad:"NG"}[a.verdict])+'</span>'+
+      '<div class="layer consensus"><div class="lab">通説</div>'+esc(e.consensus)+'</div>'+
+      '<div class="layer schools"><div class="lab">諸説</div>'+esc(e.schools)+'</div>'+
+      '<div class="layer practice"><div class="lab">実務</div>'+esc(e.practice)+'</div></div>';
+  }).join("");
+}
+
+/* ============================================================
+   FULL：シミュレーター ホーム
+   ============================================================ */
+function screenFullHome(){
+  var resume=Store.get("resume",null);
+  h(
+    '<div class="screen scroll">'+
+      topbar("面接シミュレーター", screenTitle)+
+      '<div class="pad">'+
+        (resume?'<div class="card tap" id="resume" style="border:1.5px solid var(--accent)"><h3>続きから</h3><div class="muted">中断した面接を再開します</div></div>':'')+
+        '<div class="card tap" id="start"><h3>面接を始める</h3><div class="muted">シチュエーションを選んで1周（受付→退室→評価）</div></div>'+
+        '<div class="card tap" id="drill"><h3>マナードリル</h3><div class="muted">判断5択を通しで演習</div></div>'+
+        '<div class="card tap" id="hist"><h3>履歴と成長</h3><div class="muted">過去のスコアと成長グラフ</div></div>'+
+        '<div class="card tap" id="know"><h3>知識ライブラリ</h3><div class="muted">選考前後に読むガイド</div></div>'+
+      '</div>'+
+    '</div>'
+  );
+  bindBack(screenTitle);
+  if(resume) document.getElementById("resume").onclick=function(){ resumeInterview(resume); };
+  document.getElementById("start").onclick=screenSelect1;
+  document.getElementById("drill").onclick=startDrill;
+  document.getElementById("hist").onclick=screenHistory;
+  document.getElementById("know").onclick=screenKnowledge;
+}
+
+/* ---------- シチュエーション選択（3ステップ） ---------- */
+var JOBTYPES=[{k:"sales",n:"営業"},{k:"engineer",n:"エンジニア"},{k:"admin",n:"事務・管理"},{k:"service",n:"サービス"},{k:"common",n:"職種を問わない"}];
+var STAGES=[{k:"first",n:"一次面接"},{k:"final",n:"最終面接"}];
+function screenSelect1(){
+  S.sel={};
+  h('<div class="screen scroll">'+topbar("① 職種を選ぶ", screenFullHome)+'<div class="pad" id="opts"></div></div>');
+  bindBack(screenFullHome);
+  document.getElementById("opts").innerHTML=JOBTYPES.map(function(j){
+    return '<div class="card tap opt" data-k="'+j.k+'"><h3>'+esc(j.n)+'</h3></div>';
+  }).join("");
+  bindOpts(function(k){ S.sel.jobType=k; screenSelect2(); });
+}
+function screenSelect2(){
+  h('<div class="screen scroll">'+topbar("② 選考段階を選ぶ", screenSelect1)+'<div class="pad" id="opts"></div></div>');
+  bindBack(screenSelect1);
+  document.getElementById("opts").innerHTML=STAGES.map(function(s){
+    return '<div class="card tap opt" data-k="'+s.k+'"><h3>'+esc(s.n)+'</h3><div class="muted">'+
+      (s.k==="first"?"基礎・経歴中心の出題":"志望度・条件・逆質問中心")+'</div></div>';
+  }).join("");
+  bindOpts(function(k){ S.sel.stage=k; screenSelect3(); });
+}
+function screenSelect3(){
+  h('<div class="screen scroll">'+topbar("③ 面接官を選ぶ", screenSelect2)+'<div class="pad" id="opts"></div></div>');
+  bindBack(screenSelect2);
+  document.getElementById("opts").innerHTML=GAME_DATA.personas.map(function(p){
+    return '<div class="card tap opt" data-k="'+p.id+'"><h3>'+esc(p.name)+'</h3><div class="muted">'+esc(p.intro)+'</div></div>';
+  }).join("");
+  bindOpts(function(k){ S.sel.personaId=k; beginInterview(); });
+}
+function bindOpts(cb){
+  Array.prototype.forEach.call(document.querySelectorAll(".opt"),function(el){
+    el.onclick=function(){ cb(el.getAttribute("data-k")); };
+  });
+}
+
+/* ---------- 面接開始 / 進行 ---------- */
+/* A-1: 指定カテゴリが qList に無ければ、プールから serial%該当数 番目を preferIdx に入れる。
+   preferIdx が resignation スロットを潰す場合は左へずらす（衝突回避）。乱数不使用＝決定論。 */
+function ensureCategory(qList, pool, cat, preferIdx, serial){
+  if(qList.some(function(q){ return q.category===cat; })) return;   // 既に含まれる
+  var cands=pool.filter(function(q){ return q.category===cat; });
+  if(cands.length===0) return;                                      // プールに無ければ何もしない（データ側責任）
+  var pick=cands[((serial % cands.length)+cands.length)%cands.length];
+  var idx=preferIdx;
+  while(idx>0 && qList[idx] && qList[idx].category==="resignation") idx--;  // resignationと衝突させない
+  if(idx<0) idx=0;
+  qList[idx]=pick;
+}
+function beginInterview(){
+  var serial=nextSerial();
+  var persona=GAME_DATA.personas.find(function(p){return p.id===S.sel.personaId;})||GAME_DATA.personas[0];
+  // 質疑プール：jobType(common+選択) × stage(any+選択) で絞り、周回選抜5〜8問
+  var pool=GAME_DATA.qaBank.filter(function(q){
+    var jt=(q.jobType==="common"||q.jobType===S.sel.jobType);
+    var st=(q.stage==="any"||q.stage===S.sel.stage);
+    return jt&&st;
+  });
+  var qList=cyclicSelect(pool, Math.min(8,Math.max(5,pool.length)), serial);
+  // A-1: 一貫性軸の主判定が崩れないよう resignation / motivation を強制包含（決定論・乱数なし）
+  ensureCategory(qList, pool, "resignation", qList.length-1, serial);  // 末尾
+  ensureCategory(qList, pool, "motivation",  qList.length-2, serial);  // 末尾から2番目（resignationと衝突回避）
+  S.iv={
+    serial:serial, persona:persona, sel:S.sel,
+    sceneIdx:0, qaIdx:0, qList:qList,
+    qaAnswers:[], mannerAnswers:[], transcript:[],
+    pendingProbe:null
+  };
+  saveResume();
+  runScene();
+}
+function saveResume(){
+  // 中断復帰用に逐次保存（回答全文含む）
+  Store.set("resume", {
+    serial:S.iv.serial, sel:S.iv.sel, sceneIdx:S.iv.sceneIdx, qaIdx:S.iv.qaIdx,
+    qIds:S.iv.qList.map(function(q){return q.id;}),
+    qaAnswers:S.iv.qaAnswers, mannerAnswers:S.iv.mannerAnswers, transcript:S.iv.transcript
+  });
+}
+function resumeInterview(r){
+  var persona=GAME_DATA.personas.find(function(p){return p.id===r.sel.personaId;})||GAME_DATA.personas[0];
+  var qList=r.qIds.map(function(id){return GAME_DATA.qaBank.find(function(q){return q.id===id;});}).filter(Boolean);
+  S.sel=r.sel;
+  S.iv={ serial:r.serial, persona:persona, sel:r.sel, sceneIdx:r.sceneIdx, qaIdx:r.qaIdx,
+    qList:qList, qaAnswers:r.qaAnswers||[], mannerAnswers:r.mannerAnswers||[], transcript:r.transcript||[], pendingProbe:null };
+  runScene();
+}
+function abortInterview(){
+  var m=document.createElement("div"); m.className="modal-bg";
+  m.innerHTML='<div class="modal"><h3>面接を中断しますか？</h3><p class="muted">ここまでの進行は保存され、後で「続きから」再開できます。</p>'+
+    '<div class="btn-row"><button class="btn" id="stay">続ける</button><button class="btn ghost" id="quit">中断する</button></div></div>';
+  document.body.appendChild(m);
+  document.getElementById("stay").onclick=function(){ m.remove(); };
+  document.getElementById("quit").onclick=function(){ m.remove(); saveResume(); screenFullHome(); };
+}
+function runScene(){
+  var sc=GAME_DATA.scenes[S.iv.sceneIdx];
+  S.iv.sceneIdx=S.iv.sceneIdx; saveResume();
+  if(sc.type==="story") return renderStory(sc);
+  if(sc.type==="choice") return renderSceneChoice(sc);
+  if(sc.type==="qa") return renderQA();
+  if(sc.type==="reverse_q") return renderReverseQ();
+  if(sc.type==="result") return renderFullResult();
+}
+function advanceScene(){
+  var sc=GAME_DATA.scenes[S.iv.sceneIdx];
+  var nextIdx=GAME_DATA.scenes.findIndex(function(s){return s.id===sc.next;});
+  S.iv.sceneIdx = nextIdx>=0?nextIdx:S.iv.sceneIdx+1;
+  runScene();
+}
+/* シーンの外枠（画像上2/3＋テキスト窓） */
+function sceneShell(sc, nameplate, bodyHTML, tapHint){
+  return '<div class="screen scene-wrap">'+
+    topbar("面接中", abortInterview)+
+    '<div class="scene-img">'+sceneImgHTML(sc.bg)+'</div>'+
+    '<div class="scene-txt">'+(nameplate?'<div class="nameplate">'+esc(nameplate)+'</div>':'')+
+      '<div class="body">'+bodyHTML+'</div>'+
+      (tapHint?'<div class="tap-hint">タップで進む ▶</div>':'')+
+    '</div></div>';
+}
+function renderStory(sc){
+  h(sceneShell(sc, null, esc(sc.text), true));
+  bindBack(abortInterview);
+  document.querySelector(".scene-txt").onclick=advanceScene;
+}
+/* シーン内マナー5択（scene値でプール→周回選抜1問） */
+function renderSceneChoice(sc){
+  var pool=GAME_DATA.mannerQuestions.filter(function(m){
+    return m.scene===sc.scene && (m.usage==="scene"||m.usage==="both");
+  });
+  var picked=cyclicSelect(pool,1,S.iv.serial)[0];
+  if(!picked){ advanceScene(); return; }
+  var persona=S.iv.persona;
+  h(sceneShell(sc, persona.name,
+     '<div class="q-topic">'+esc(picked.topic)+'</div><div style="font-weight:700;margin-bottom:10px">'+esc(picked.prompt)+'</div><div id="choices"></div>', false));
+  bindBack(abortInterview);
+  renderChoices(picked, function(ci){
+    var c=picked.choices[ci];
+    S.iv.mannerAnswers.push({ id:picked.id, points:c.points, verdict:c.verdict });
+    S.iv.transcript.push({ q:"[マナー] "+picked.prompt, a:"選択"+["A","B","C","D","E"][ci]+"（"+c.verdict+"）" });
+    saveResume();
+    showExplanation(picked, ci, advanceScene);
+  });
+}
+/* 質疑ループ（テキスト回答＋深掘り分岐） */
+function renderQA(){
+  if(S.iv.qaIdx>=S.iv.qList.length){ advanceScene(); return; }
+  var q=S.iv.qList[S.iv.qaIdx], sc=GAME_DATA.scenes[S.iv.sceneIdx], persona=S.iv.persona;
+  var qtext = S.iv.pendingProbe ? S.iv.pendingProbe.question : q.question;
+  var greet = (S.iv.qaIdx===0 && !S.iv.pendingProbe && persona.lines.greeting[0]) ? persona.lines.greeting[0]+"<br><br>" : "";
+  h(
+    '<div class="screen scene-wrap">'+
+      topbar("質疑 "+(S.iv.qaIdx+1)+" / "+S.iv.qList.length, abortInterview)+
+      '<div class="scene-img" style="flex:1.1">'+sceneImgHTML(sc.bg)+'</div>'+
+      '<div class="scene-txt" style="flex:0 0 auto"><div class="nameplate">'+esc(persona.name)+'</div>'+
+        '<div class="body">'+greet+esc(qtext)+'</div></div>'+
+      '<div class="ta-wrap" style="flex:1">'+
+        '<textarea class="answer" id="ans" placeholder="ここに回答を入力（送信後は取り消せません）"></textarea>'+
+        '<div class="counter" id="cnt">0 字</div>'+
+        '<button class="btn accent" id="send">回答する</button>'+
+      '</div>'+
+    '</div>'
+  );
+  bindBack(abortInterview);
+  var ta=document.getElementById("ans"), cnt=document.getElementById("cnt");
+  ta.oninput=function(){
+    var l=ta.value.replace(/\s/g,"").length; cnt.textContent=l+" 字";
+    cnt.className="counter"+((l>0&&l<80)||l>400?" warn":"");
+  };
+  document.getElementById("send").onclick=function(){
+    var text=ta.value.trim();
+    if(text.length===0){ toast("回答を入力してください"); return; }
+    submitAnswer(q, text);
+  };
+}
+function submitAnswer(q, text){
+  var isProbe=!!S.iv.pendingProbe;
+  S.iv.qaAnswers.push({ category:q.category, text:text, isProbe:isProbe, keywords:q.evalKeywords });
+  S.iv.transcript.push({ q:(isProbe?S.iv.pendingProbe.question:q.question), a:text });
+  if(isProbe){
+    S.iv.pendingProbe=null; S.iv.qaIdx++; saveResume(); renderQA(); return;
+  }
+  // 深掘りトリガー判定（1問のみ）
+  var len=text.replace(/\s/g,"").length;
+  var hasEx=(q.evalKeywords.example||[]).some(function(k){return text.indexOf(k)>=0;});
+  var probe=null, ps=q.probes||[];
+  probe = ps.find(function(p){return p.trigger==="short"&&len<80;})
+       || ps.find(function(p){return p.trigger==="no_example"&&!hasEx;})
+       || ps.find(function(p){return p.trigger==="always";}) || null;
+  if(probe){ S.iv.pendingProbe=probe; saveResume(); renderQA(); }
+  else { S.iv.qaIdx++; saveResume(); renderQA(); }
+}
+/* 逆質問（①5択 ②フリー入力1問） */
+function renderReverseQ(){
+  var sc=GAME_DATA.scenes[S.iv.sceneIdx], persona=S.iv.persona;
+  var pool=GAME_DATA.mannerQuestions.filter(function(m){ return m.scene==="reverse_q"; });
+  var picked=cyclicSelect(pool,1,S.iv.serial)[0];
+  if(!picked){ S.iv._rqDone=true; }
+  if(!S.iv._rqDone && picked){
+    h(sceneShell(sc, persona.name,
+      '<div>'+esc(persona.lines.closing[0]||"最後に質問はありますか。")+'</div>'+
+      '<div class="q-topic" style="margin-top:10px">'+esc(picked.topic)+'</div><div style="font-weight:700;margin-bottom:10px">'+esc(picked.prompt)+'</div><div id="choices"></div>', false));
+    bindBack(abortInterview);
+    renderChoices(picked, function(ci){
+      var c=picked.choices[ci];
+      S.iv.mannerAnswers.push({ id:picked.id, points:c.points, verdict:c.verdict });
+      S.iv.transcript.push({ q:"[逆質問5択] "+picked.prompt, a:"選択"+["A","B","C","D","E"][ci]+"（"+c.verdict+"）" });
+      S.iv._rqDone=true; saveResume();
+      showExplanation(picked, ci, renderReverseQ);
+    });
+    return;
+  }
+  // ②フリー入力1問（形式判定のみ）
+  h(
+    '<div class="screen scene-wrap">'+
+      topbar("逆質問", abortInterview)+
+      '<div class="scene-img" style="flex:1.1">'+sceneImgHTML(sc.bg)+'</div>'+
+      '<div class="scene-txt" style="flex:0 0 auto"><div class="nameplate">'+esc(persona.name)+'</div>'+
+        '<div class="body">では、あなたから自由に質問をどうぞ。</div></div>'+
+      '<div class="ta-wrap" style="flex:1">'+
+        '<textarea class="answer" id="ans" placeholder="面接官に聞きたいことを入力"></textarea>'+
+        '<div class="counter" id="cnt">0 字</div>'+
+        '<button class="btn accent" id="send">質問する</button>'+
+      '</div>'+
+    '</div>'
+  );
+  bindBack(abortInterview);
+  var ta=document.getElementById("ans"), cnt=document.getElementById("cnt");
+  ta.oninput=function(){ cnt.textContent=ta.value.replace(/\s/g,"").length+" 字"; };
+  document.getElementById("send").onclick=function(){
+    var text=ta.value.trim(); if(!text){ toast("質問を入力してください"); return; }
+    S.iv.qaAnswers.push({ category:"reverse", text:text, isProbe:false, keywords:{conclusion:[],example:GAME_DATA.qaBank[0].evalKeywords.example} });
+    S.iv.transcript.push({ q:"[逆質問フリー]", a:text });
+    S.iv._rqDone=false; saveResume(); advanceScene();
+  };
+}
+
+/* ---------- 総合評価 ---------- */
+function renderFullResult(){
+  var sc=scoreFull(S.iv.qaAnswers, S.iv.mannerAnswers);
+  var jobName=(JOBTYPES.find(function(j){return j.k===S.iv.sel.jobType;})||{}).n||S.iv.sel.jobType;
+  var sess={
+    ts:new Date().toISOString(), edition:"full", jobType:S.iv.sel.jobType, jobName:jobName,
+    stage:S.iv.sel.stage, persona:S.iv.persona.name, sel:S.iv.sel,   // A-2: 添削ログ用に面接条件を保持
+    scores:{ manner:sc.manner, form:sc.form, consist:sc.consist, improvements:sc.improvements },
+    transcript:S.iv.transcript
+  };
+  saveSession(sess);
+  Store.del("resume");   // 完走したので中断データ削除
+  var hist=loadHistory();
+  var reviewLog=buildReviewLog(sess);
+
+  h(
+    '<div class="screen scroll">'+
+      topbar("総合評価", screenFullHome)+
+      '<div class="pad">'+
+        '<div class="axis-grid">'+
+          '<div class="axis-box"><div class="n">'+sc.manner+'</div><div class="l">マナー</div></div>'+
+          '<div class="axis-box"><div class="n">'+sc.form+'</div><div class="l">回答形式</div></div>'+
+          '<div class="axis-box"><div class="n">'+sc.consist+'</div><div class="l">一貫性</div></div>'+
+        '</div>'+
+        '<h3>改善点</h3>'+
+        sc.improvements.map(function(t,i){return '<div class="card" style="padding:12px 14px"><b style="color:var(--accent-d)">'+(i+1)+'.</b> '+esc(t)+'</div>';}).join("")+
+        (hist.length>=2?'<h3 style="margin-top:16px">成長グラフ</h3>'+growthGraph(hist):'<div class="notice" style="margin-top:12px">成長グラフは2回目以降に表示されます</div>')+
+        '<h3 style="margin-top:16px">AI添削に出す</h3>'+
+        '<div class="copybox" id="cbox">'+esc(reviewLog.slice(0,300))+(reviewLog.length>300?' …':'')+'</div>'+
+        '<button class="btn accent" id="copy">ログをコピー</button>'+
+        '<div class="btn-row"><button class="btn" id="again">もう一度</button><button class="btn ghost" id="home">ホームへ</button></div>'+
+      '</div>'+
+    '</div>'
+  );
+  bindBack(screenFullHome);
+  document.getElementById("copy").onclick=function(){ copyText(reviewLog,"面接ログをコピーしました"); };
+  document.getElementById("again").onclick=screenSelect1;
+  document.getElementById("home").onclick=screenFullHome;
+}
+/* 成長グラフ（3軸折れ線・SVG手描き） */
+function growthGraph(hist){
+  var data=hist.slice(0,10).reverse();   // 古→新
+  var W=440,H=180,pad=28, n=data.length;
+  function x(i){ return n<=1?W/2:pad+i*(W-2*pad)/(n-1); }
+  function y(v){ return H-pad-(v/100)*(H-2*pad); }
+  var axes=[{k:"manner",c:"#31507f"},{k:"form",c:"#c9a24b"},{k:"consist",c:"#2e7d5b"}];
+  var lines=axes.map(function(a){
+    var d=data.map(function(s,i){return (i===0?"M":"L")+x(i).toFixed(1)+" "+y(s.scores[a.k]).toFixed(1);}).join(" ");
+    var dots=data.map(function(s,i){return '<circle cx="'+x(i).toFixed(1)+'" cy="'+y(s.scores[a.k]).toFixed(1)+'" r="3" fill="'+a.c+'"/>';}).join("");
+    return '<path d="'+d+'" fill="none" stroke="'+a.c+'" stroke-width="2.5"/>'+dots;
+  }).join("");
+  var grid=[0,25,50,75,100].map(function(v){return '<line x1="'+pad+'" y1="'+y(v)+'" x2="'+(W-pad)+'" y2="'+y(v)+'" stroke="#eef1f6"/><text x="4" y="'+(y(v)+3)+'" font-size="9" fill="#9aa4b2">'+v+'</text>';}).join("");
+  var legend='<g font-size="10">'+axes.map(function(a,i){return '<rect x="'+(pad+i*90)+'" y="4" width="10" height="10" fill="'+a.c+'"/><text x="'+(pad+14+i*90)+'" y="13" fill="#333">'+({manner:"マナー",form:"形式",consist:"一貫性"}[a.k])+'</text>';}).join("")+'</g>';
+  return '<svg class="line-graph" viewBox="0 0 '+W+' '+H+'">'+grid+lines+legend+'</svg>';
+}
+
+/* ============================================================
+   マナードリル（usage quiz/both を通し）
+   ============================================================ */
+function startDrill(){
+  var list=GAME_DATA.mannerQuestions.filter(function(m){return m.usage==="quiz"||m.usage==="both";});
+  S.drill={ list:list, idx:0, answers:[] };
+  renderDrill();
+}
+function renderDrill(){
+  var d=S.drill, q=d.list[d.idx], n=d.list.length;
+  h('<div class="screen">'+topbar("ドリル "+(d.idx+1)+" / "+n, screenFullHome)+
+    '<div class="progress"><i style="width:'+((d.idx+1)/n*100)+'%"></i></div>'+
+    '<div class="scroll grow pad"><div class="q-stem"><div class="q-topic">'+esc(q.topic)+'</div><div>'+esc(q.prompt)+'</div></div><div id="choices"></div></div></div>');
+  bindBack(screenFullHome);
+  renderChoices(q, function(ci){
+    var c=q.choices[ci];
+    d.answers.push({ id:q.id, topic:q.topic, points:c.points, verdict:c.verdict });
+    showExplanation(q, ci, function(){
+      if(d.idx<d.list.length-1){ d.idx++; renderDrill(); } else renderDrillResult();
+    });
+  });
+}
+function renderDrillResult(){
+  var r=scoreQuiz(S.drill.answers);
+  h('<div class="screen scroll">'+topbar("ドリル結果", screenFullHome)+'<div class="pad">'+
+    '<div class="score-hero"><div class="rank-badge">'+esc(r.rank.rank)+'</div><div class="score-num">'+r.score+'<span style="font-size:20px">点</span></div></div>'+
+    '<h3>カテゴリ別</h3>'+r.topics.map(function(t){return '<div class="bar-row"><div class="bl"><span>'+esc(t.topic)+'</span><span>'+t.rate+'%</span></div><div class="bar"><i style="width:'+t.rate+'%"></i></div></div>';}).join("")+
+    '<h3 style="margin-top:16px">弱点</h3><div>'+r.weak.map(function(w){return '<span class="weak-chip">'+esc(w.topic)+' '+w.rate+'%</span>';}).join("")+'</div>'+
+    '<div class="btn-row"><button class="btn accent" id="again">もう一度</button><button class="btn ghost" id="home">ホームへ</button></div></div></div>');
+  bindBack(screenFullHome);
+  document.getElementById("again").onclick=startDrill;
+  document.getElementById("home").onclick=screenFullHome;
+}
+
+/* ============================================================
+   履歴 / 成長
+   ============================================================ */
+function screenHistory(){
+  var hist=loadHistory();
+  h('<div class="screen scroll">'+topbar("履歴と成長", screenFullHome)+'<div class="pad" id="hl"></div></div>');
+  bindBack(screenFullHome);
+  var box=document.getElementById("hl");
+  if(hist.length===0){ box.innerHTML='<div class="notice">まだ履歴がありません。面接を1周すると記録されます。</div>'; return; }
+  var graph = hist.length>=2 ? '<h3>成長グラフ</h3>'+growthGraph(hist)+'<div class="divider"></div>' : '';
+  box.innerHTML=graph+hist.map(function(s,i){
+    var d=new Date(s.ts);
+    return '<div class="list-item" data-i="'+i+'"><div style="font-weight:700">'+esc(s.jobName||s.jobType)+' / '+({first:"一次",final:"最終"}[s.stage]||s.stage)+'</div>'+
+      '<div class="meta">'+d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+'</div>'+
+      '<div class="pills"><span class="pill">マナー '+s.scores.manner+'</span><span class="pill">形式 '+s.scores.form+'</span><span class="pill">一貫性 '+s.scores.consist+'</span></div></div>';
+  }).join("");
+  Array.prototype.forEach.call(box.querySelectorAll(".list-item"),function(el){
+    el.onclick=function(){ screenHistoryDetail(+el.getAttribute("data-i")); };
+  });
+}
+function screenHistoryDetail(i){
+  var s=loadHistory()[i]; if(!s){ screenHistory(); return; }
+  var reviewLog=buildReviewLog(s);
+  h('<div class="screen scroll">'+topbar("セッション詳細", screenHistory)+'<div class="pad">'+
+    '<div class="axis-grid"><div class="axis-box"><div class="n">'+s.scores.manner+'</div><div class="l">マナー</div></div>'+
+    '<div class="axis-box"><div class="n">'+s.scores.form+'</div><div class="l">形式</div></div>'+
+    '<div class="axis-box"><div class="n">'+s.scores.consist+'</div><div class="l">一貫性</div></div></div>'+
+    '<h3>改善点</h3>'+s.scores.improvements.map(function(t,k){return '<div class="card" style="padding:10px 12px">'+(k+1)+'. '+esc(t)+'</div>';}).join("")+
+    '<h3 style="margin-top:14px">回答ログ</h3>'+
+    s.transcript.map(function(x){return '<div class="card" style="padding:12px"><div class="tiny muted">'+esc(x.q)+'</div><div>'+esc(x.a)+'</div></div>';}).join("")+
+    '<button class="btn accent" id="copy" style="margin-top:12px">AI添削プロンプトをコピー</button>'+
+    '</div></div>');
+  bindBack(screenHistory);
+  document.getElementById("copy").onclick=function(){ copyText(reviewLog,"プロンプトをコピーしました"); };
+}
+
+/* ============================================================
+   知識ライブラリ
+   ============================================================ */
+function screenKnowledge(){
+  h('<div class="screen scroll">'+topbar("知識ライブラリ", screenFullHome)+'<div class="pad" id="kl"></div></div>');
+  bindBack(screenFullHome);
+  document.getElementById("kl").innerHTML=GAME_DATA.knowledge.map(function(k){
+    return '<div class="card tap kitem" data-id="'+k.id+'"><h3>'+esc(k.title)+'</h3><div class="muted">'+esc(k.body.slice(0,44))+'…</div></div>';
+  }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll(".kitem"),function(el){
+    el.onclick=function(){ var k=GAME_DATA.knowledge.find(function(x){return x.id===el.getAttribute("data-id");}); screenKnowledgeDetail(k); };
+  });
+}
+function screenKnowledgeDetail(k){
+  h('<div class="screen scroll">'+topbar(k.title, screenKnowledge)+'<div class="pad"><div class="card"><h2>'+esc(k.title)+'</h2><p>'+esc(k.body)+'</p></div></div></div>');
+  bindBack(screenKnowledge);
+}
+
+/* ============================================================
+   PWA：Service Worker（best effort。file://等では静かに失敗）
+   外部通信ゼロ・全埋め込みのため SW 無しでも全機能が劣化なく動作
+   ============================================================ */
+/* ============================================================
+   A-2: 初回起動インストールガイド（非standalone・初回のみ）
+   ============================================================ */
+function isStandalone(){
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true;
+}
+function maybeShowInstallGuide(){
+  if(isStandalone()) return;                          // standalone起動時は一切表示しない
+  if(Store.get("installGuideDismissed",false)) return; // 「あとで」既押しなら以後表示しない
+  var ua=navigator.userAgent||"";
+  var isIOS=/iPhone|iPad|iPod/.test(ua), isAndroid=/Android/.test(ua);
+  var hint;
+  if(isIOS) hint="共有ボタン（□に↑のマーク）→「ホーム画面に追加」で、アプリとして使えます。";
+  else if(isAndroid) hint="メニュー（⋮）→「アプリをインストール」または「ホーム画面に追加」で、アプリとして使えます。";
+  else hint="ブラウザのメニューから「ホーム画面に追加」で、アプリとして使えます。";
+  var m=document.createElement("div"); m.className="modal-bg install-bg";
+  m.innerHTML='<div class="modal install-sheet">'+
+      '<h3>アプリとして使うと便利です</h3>'+
+      '<div class="ig-hint">'+esc(hint)+'</div>'+
+      '<button class="btn ghost" id="ig-later">あとで</button>'+
+    '</div>';
+  document.body.appendChild(m);
+  document.getElementById("ig-later").onclick=function(){ Store.set("installGuideDismissed",true); m.remove(); };
+}
+
+(function registerSW(){
+  if(!("serviceWorker" in navigator)) return;
+  try{
+    var swCode="self.addEventListener('install',function(e){self.skipWaiting();});"+
+               "self.addEventListener('activate',function(e){e.waitUntil(self.clients.claim());});"+
+               "self.addEventListener('fetch',function(e){/* 全内蔵のためネットワーク不要。素通し */});";
+    var blob=new Blob([swCode],{type:"text/javascript"});
+    var url=URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url).catch(function(){/* file://等は無視 */});
+  }catch(e){/* 握りつぶし（機能に影響なし） */}
+})();
+
+/* ============================================================
+   起動
+   ============================================================ */
+maybeShowInstallGuide();
+startTrial();
+</script>
+</body>
+</html>
