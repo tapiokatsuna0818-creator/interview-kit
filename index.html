@@ -558,8 +558,8 @@ var GAME_DATA = {
       "逆質問":           "逆質問を3〜5個、今日中にメモしてください。この診断の解説にNGパターンも載っています。"
     },
     cta: {
-      lead: "この診断で見えた弱点は、正しい順番で潰せば短期間で消せます。退職理由の組み直しテンプレ・逆質問リスト・面接前48時間チェックリストなど、弱点別の潰し方は解説記事にまとめてあります",
-      button: "弱点の潰し方を読む",
+      lead: "あなたの落ちる理由が分かったら、次は潰し方。タイプ別の対策テンプレ7点（退職理由の組み直し・逆質問リスト・面接前48時間チェックリストなど）は、こちらにまとめてあります",
+      button: "タイプ別の対策テンプレ7点を見る",
       url: "https://note.com/bairitsu400/n/n74704fa14b5c"
     },
     resultCta: "この診断で見えた弱点は、正しい順番で潰せば短期間で消せます。退職理由の組み直しテンプレ・逆質問リスト・面接前48時間チェックリストなど、弱点別の潰し方は解説記事にまとめてあります。"
@@ -973,7 +973,8 @@ function renderQuizResult(){
       '</div></details>';
   }).join("");
   var title=r.rank.title||"";
-  // C-4 表示順: スコアcount-up→ランクスタンプ+称号→総評→topic→弱点→CTA→全問振り返り（各カード分離）
+  // 表示順: スコアcount-up→ランクスタンプ+称号→総評→カテゴリ別→**CTA**→弱点→全問振り返り
+  // （2026-07-14 ろき指示: CTAは診断結果＝タイプ判定・カテゴリ別スコアの直下に1つだけ置く）
   h(
     '<div class="screen scroll">'+
       topbar("診断結果", screenTitle)+
@@ -985,8 +986,8 @@ function renderQuizResult(){
         '</div>'+
         '<div class="result-card"><div class="sec-h">総評</div><div style="font-size:14px;line-height:1.75">'+esc(r.rank.comment)+'</div></div>'+
         '<div class="result-card"><div class="sec-h">カテゴリ別</div>'+barsHTML+'</div>'+
-        '<div class="sec-h" style="margin:2px 2px 10px">重点的に見直したい弱点</div>'+weakHTML+
         ctaHTML+
+        '<div class="sec-h" style="margin:2px 2px 10px">重点的に見直したい弱点</div>'+weakHTML+
         '<div class="result-card"><div class="sec-h">全問の振り返り</div>'+
           '<p class="tiny muted" style="margin-top:-4px">タップで解説（通説）が開きます</p>'+reviewHTML+'</div>'+
         '<div class="btn-row"><button class="btn accent" id="again">もう一度</button>'+
