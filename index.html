@@ -557,9 +557,30 @@ var GAME_DATA = {
       "退室":             "「座って礼→立って礼→ドア前で礼」の3段階を体で1回リハーサルしてください。頭で知っているだけだと本番で飛びます。",
       "逆質問":           "逆質問を3〜5個、今日中にメモしてください。この診断の解説にNGパターンも載っています。"
     },
+    /* P1-B2: 弱点タイプ → 記事内の主テンプレ（記事見出しは実測値）
+       9タイプ中5タイプが「面接前48時間チェックリスト」に集まる。
+       そのため文面では「タイプ別に7点ある」とは言わず、主テンプレを1本だけ名指しする。 */
+    templateMap: {
+      "選考前の対応":     "面接前48時間チェックリスト",
+      "受付・入室前":     "面接前48時間チェックリスト",
+      "面接中の所作":     "面接前48時間チェックリスト",
+      "退職理由の伝え方": "退職理由の組み直しテンプレ",
+      "Web面接":          "面接前48時間チェックリスト",
+      "弱みの伝え方":     "弱みの答え方テンプレ",
+      "選考状況の伝え方": "他社選考状況の答え方",
+      "退室":             "お礼メールの型文",
+      "逆質問":           "逆質問リスト15選"
+    },
+    /* P1-B3: 踊り場（CTAの上）。本文は weakAdvice をそのまま出すので新規文言はこの1行だけ */
+    landing: {
+      heading: "今日やること、1つだけ",
+      note: "これは今日、無料でできます。ここまでで診断は終わりです。"
+    },
     cta: {
-      lead: "あなたの落ちる理由が分かったら、次は潰し方。タイプ別の対策テンプレ7点（退職理由の組み直し・逆質問リスト・面接前48時間チェックリストなど）は、こちらにまとめてあります",
-      button: "タイプ別の対策テンプレ7点を見る",
+      leadTpl: "それでも「{弱点タイプ}」は、当日の言い回しで結果が変わります。\nあなたの場合に効くのは {主テンプレ} です。\n退職理由の組み直し・逆質問リスト15選・面接前48時間チェックリストを含むテンプレ7点をまとめた記事に入っています。",
+      buttonTpl: "{主テンプレ}を読む",
+      leadFallback: "面接は、当日の言い回しで結果が変わります。\n退職理由の組み直し・逆質問リスト15選・面接前48時間チェックリストを含むテンプレ7点を、1本の記事にまとめてあります。",
+      buttonFallback: "対策テンプレ7点を読む",
       url: "https://note.com/bairitsu400/n/n74704fa14b5c"
     },
     resultCta: "この診断で見えた弱点は、正しい順番で潰せば短期間で消せます。退職理由の組み直しテンプレ・逆質問リスト・面接前48時間チェックリストなど、弱点別の潰し方は解説記事にまとめてあります。"
@@ -608,6 +629,17 @@ var Store = (function(){
   function del(key){ try{ if(ok) localStorage.removeItem(PREFIX+key); else delete mem[key]; }catch(e){} }
   return { get:get, set:set, del:del, available:ok };
 })();
+
+/* D-2 計測: ハッシュ仮想ページを1セッション1回だけ発火（台帳 §4-2）
+   get/set は Store 内部関数のため Store.get/Store.set を使用（§4-2 注記どおり実コードで確認） */
+function track(path){
+  try{
+    var k="d2_"+path;
+    if(Store.get(k,0)) return;
+    Store.set(k,1);
+    if(location.hash!=="#"+path) location.hash=path;
+  }catch(e){}
+}
 
 /* 履歴 20件 FIFO */
 function loadHistory(){ return Store.get("history",[]); }
@@ -869,6 +901,7 @@ function startTrial(){
   renderQuizQuestion();
 }
 function renderQuizQuestion(){
+  track('/q'+(S.quiz.idx+1));
   var q=S.quiz.list[S.quiz.idx], n=S.quiz.list.length, cur=S.quiz.idx+1;
   var prevPct=(S.quiz.idx)/n*100, curPct=cur/n*100;   // C-1: 回答ごとにバーが伸びる
   h(
@@ -932,6 +965,7 @@ function showExplanation(q, ci, onNext){
   document.getElementById("nextQ").onclick=function(){ m.remove(); onNext(); };
 }
 function renderQuizResult(){
+  track('/complete-quiz');
   var r=scoreQuiz(S.quiz.answers), qd=GAME_DATA.quizDeck;
   var tc=qd.topicComments||{}, wa=qd.weakAdvice||{};
   // topic別バー（アニメで伸長）＋一言診断（70%閾値 good/bad。データ無topicは非表示）
@@ -947,12 +981,30 @@ function renderQuizResult(){
     return '<div class="weak-card"><div class="wc-label">弱点</div><div class="wc-topic">'+esc(w.topic)+'（'+w.rate+'%）</div>'+
            (adv?'<div class="wc-todo"><b>明日やること: </b>'+esc(adv)+'</div>':'')+'</div>';
   }).join("");
+  // 踊り場（P1-B3）: CTAの上。最も低い弱点1つの weakAdvice をそのまま再掲する
+  var topWeak=(r.weak && r.weak.length)?r.weak[0].topic:null;
+  var landingHTML="";
+  if(topWeak && wa[topWeak] && qd.landing){
+    track('/result-advice');
+    landingHTML='<div class="result-card"><div class="sec-h">'+esc(qd.landing.heading)+'</div>'+
+      '<div style="font-size:14px;line-height:1.75">'+esc(wa[topWeak])+'</div>'+
+      '<div style="font-size:13px;line-height:1.75;margin-top:10px">'+esc(qd.landing.note)+'</div>'+
+      '</div>';
+  }
   // CTA（B項ガード: url未定義/空/"{{"含む＝未置換 → <a>を描画しない。leadは表示可）
   var ctaHTML="";
   if(qd.cta){
     var url=qd.cta.url, valid=(typeof url==="string" && url.length>0 && url.indexOf("{{")<0);
-    ctaHTML='<div class="cta-box"><div class="cta-lead">'+esc(qd.cta.lead)+'</div>'+
-      (valid?'<a class="btn accent cta-btn" href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(qd.cta.button)+'</a>':'')+
+    var tmap=qd.templateMap||{}, tpl=topWeak?tmap[topWeak]:null;
+    var ctaLead, ctaBtn;
+    if(topWeak && tpl){   // P1-B2: 弱点タイプと主テンプレを名指しする
+      ctaLead=qd.cta.leadTpl.replace("{弱点タイプ}",topWeak).replace(/\{主テンプレ\}/g,tpl);
+      ctaBtn=qd.cta.buttonTpl.replace("{主テンプレ}",tpl);
+    } else {              // 弱点が出なかった場合（満点など）は名指しできないので汎用文
+      ctaLead=qd.cta.leadFallback; ctaBtn=qd.cta.buttonFallback;
+    }
+    ctaHTML='<div class="cta-box"><div class="cta-lead">'+esc(ctaLead).replace(/\n/g,"<br>")+'</div>'+
+      (valid?'<a class="btn accent cta-btn" onclick="track(\'/out-note\')" href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(ctaBtn)+'</a>':'')+
       '</div>';
   } else if(qd.resultCta){
     ctaHTML='<div class="notice" style="margin-top:16px">'+esc(qd.resultCta)+'</div>';
@@ -986,6 +1038,7 @@ function renderQuizResult(){
         '</div>'+
         '<div class="result-card"><div class="sec-h">総評</div><div style="font-size:14px;line-height:1.75">'+esc(r.rank.comment)+'</div></div>'+
         '<div class="result-card"><div class="sec-h">カテゴリ別</div>'+barsHTML+'</div>'+
+        landingHTML+
         ctaHTML+
         '<div class="sec-h" style="margin:2px 2px 10px">重点的に見直したい弱点</div>'+weakHTML+
         '<div class="result-card"><div class="sec-h">全問の振り返り</div>'+
@@ -1280,6 +1333,7 @@ function renderReverseQ(){
 
 /* ---------- 総合評価 ---------- */
 function renderFullResult(){
+  track('/complete-full');
   var sc=scoreFull(S.iv.qaAnswers, S.iv.mannerAnswers);
   var jobName=(JOBTYPES.find(function(j){return j.k===S.iv.sel.jobType;})||{}).n||S.iv.sel.jobType;
   var sess={
@@ -1357,6 +1411,7 @@ function renderDrill(){
   });
 }
 function renderDrillResult(){
+  track('/complete-drill');
   var r=scoreQuiz(S.drill.answers);
   h('<div class="screen scroll">'+topbar("ドリル結果", screenFullHome)+'<div class="pad">'+
     '<div class="score-hero"><div class="rank-badge">'+esc(r.rank.rank)+'</div><div class="score-num">'+r.score+'<span style="font-size:20px">点</span></div></div>'+
