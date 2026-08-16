@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>面接シミュレーター</title>
-<link rel="manifest" href='data:application/json,{"name":"面接シミュレーター","short_name":"面接SIM","start_url":".","display":"standalone","orientation":"portrait","background_color":"%231a2a4a","theme_color":"%231a2a4a","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22%3E%3Crect width=%22192%22 height=%22192%22 rx=%2232%22 fill=%22%231a2a4a%22/%3E%3Ccircle cx=%2296%22 cy=%2272%22 r=%2234%22 fill=%22%23c9a24b%22/%3E%3Crect x=%2244%22 y=%22118%22 width=%22104%22 height=%2258%22 rx=%2229%22 fill=%22%23c9a24b%22/%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"}]}'>
+<link rel="manifest" href='data:application/json,{"name":"面接シミュレーター","short_name":"面接SIM","start_url":".","display":"standalone","orientation":"portrait","background_color":"%231a2a4a","theme_color":"%231a2a4a","icons":[{"src":"data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20192%20192%27%3E%3Crect%20width=%27192%27%20height=%27192%27%20rx=%2732%27%20fill=%27%231a2a4a%27/%3E%3Ccircle%20cx=%2796%27%20cy=%2772%27%20r=%2734%27%20fill=%27%23c9a24b%27/%3E%3Crect%20x=%2744%27%20y=%27118%27%20width=%27104%27%20height=%2758%27%20rx=%2729%27%20fill=%27%23c9a24b%27/%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"}]}'>
 <style>
 /* ===== リセット & 変数 ===== */
 :root{
@@ -244,6 +244,7 @@ svg.line-graph{width:100%; height:auto; background:#fff; border-radius:12px; box
 .cta-box{background:linear-gradient(160deg,var(--navy),var(--navy-3)); color:#fff; border-radius:var(--radius); padding:16px; margin:16px 0; box-shadow:var(--shadow);}
 .cta-lead{font-size:13px; line-height:1.75; opacity:.93; margin-bottom:12px;}
 .cta-btn{text-decoration:none;}
+.cta-note{font-size:11.5px; line-height:1.7; opacity:.8; margin-top:10px;}
 .rv-item{background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; overflow:hidden;}
 .rv-item>summary{list-style:none; cursor:pointer; padding:11px 13px; display:flex; align-items:center; gap:8px; font-size:13px; min-height:var(--tap);}
 .rv-item>summary::-webkit-details-marker{display:none;}
@@ -366,11 +367,10 @@ var GAME_DATA = {
         { text: "遅刻の印象を引きずるより仕切り直す方が良いので、メールで日程の再調整を依頼して当日は引き返す", verdict: "bad", points: -1 }
       ],
       explanation: {
-        consensus: "遅刻連絡の優先順位は「電話＞メール」で全出典一致。メールは相手がいつ読むか分からず、面接官側のスケジュール調整ができないため、メール単独で完結させるのはNG。",
-        schools: "対立説はなし。争点は「電車内など物理的に通話できない場合」のみで、その解も「メールで一次連絡＋『後ほど電話します』と明記→通話可能になり次第かけ直す」の二段構えで各社一致。",
-        practice: "伝える内容は「誠意あるお詫び・遅刻理由・到着予定時刻」の3点。遅延証明書は後から提出すればよく、連絡より優先しない。数分の遅れでも無連絡は最も評価を下げる。"
-      },
-      source: "調査項目30"
+        consensus: "遅れると分かった時点で、まず採用担当へ電話してください。メールだけで済ませず、電話がつながらないときにかぎってメールを送り、「通話でき次第あらためてお電話します」と書き添えてください。",
+        schools: "電車の中など、その場で通話できないときはどうするか。降りて通話できるようになった時点でかけ直す前提で、一次連絡だけ先に入れておいてください。",
+        practice: "伝える中身は、お詫び・遅れる理由・到着の見込み時刻の三つに絞って、家を出る前に一度声に出してみてください。"
+      }
     },
     {
       id: "m_q02", scene: null, usage: "quiz", topic: "受付・入室前",
@@ -383,11 +383,10 @@ var GAME_DATA = {
         { text: "受付は形式的な場なので通さず、事前にもらった担当者の連絡先に「到着しました」とメッセージを直接送る", verdict: "bad", points: -1 }
       ],
       explanation: {
-        consensus: "受付では「挨拶・フルネーム・用件（面接の約束）・担当者名」の4点を一息で伝えるのが基本形で、各社ほぼ一致。受付対応も評価対象という認識が転職メディア間で共通（面接官が受付スタッフに応募者の様子を確認する場合がある）。",
-        schools: "名乗り方そのものに対立説はない。近年は無人受付＋内線電話のケースが増えており、案内表示の内線番号から同じ型で名乗る。",
-        practice: "受付に名乗り出るのは面接時刻の5〜10分前。それより早く着いた場合は建物の外やカフェで時間調整する（10分以上前の受付は先方の業務を中断させるため避ける）。"
-      },
-      source: "調査項目28・27"
+        consensus: "受付では、挨拶・自分のフルネーム・面接の約束がある旨・担当者名の順で伝えてください。無人受付で内線をかけるときも、同じ順番で名乗ってください。",
+        schools: "早く着きすぎたとき、そのまま受付へ行くか外で待つか。約束の時刻の少し前になってから声をかけるようにしてください。",
+        practice: "建物に入る前に、名乗る文章をそのまま一度口に出して確かめてみてください。"
+      }
     },
     {
       id: "m_q03", scene: null, usage: "quiz", topic: "面接中の所作",
@@ -400,11 +399,10 @@ var GAME_DATA = {
         { text: "邪魔にならないよう、背もたれと自分の背中の間に挟んで固定する", verdict: "bad", points: -1 }
       ],
       explanation: {
-        consensus: "バッグは椅子の横の床に自立させて置くのが基本。机や隣の椅子は面接官側のスペースであり、膝上は落ち着きがない印象を与える。",
-        schools: "左右どちらに置くかは利き手や部屋のレイアウトによるとされ、厳密な決まりはない（ここは減点対象になりにくい）。",
-        practice: "自立しない柔らかいバッグは倒れて所作が乱れる原因になるため、面接には自立型を選ぶと安全。書類を出す想定がある場合は、取り出しやすい向きで置く。"
-      },
-      source: "調査項目08"
+        consensus: "バッグは椅子の横の床に置いてください。机の上や隣の椅子の座面には置かないでください。",
+        schools: "左右のどちらに置くか。書類を出す予定があるなら、取り出しやすい側に置いてください。",
+        practice: "面接に持っていくバッグは、床に置いたときに自立するものを選んでください。"
+      }
     },
     {
       id: "t_q01", scene: null, usage: "quiz", topic: "退職理由の伝え方",
@@ -417,11 +415,10 @@ var GAME_DATA = {
         { text: "「時間の長さで評価される環境に課題を感じ、自分なりに効率化を提案してきました。今後は仕事の質を評価する環境で力を発揮したいと考えています」", verdict: "best", points: 2 }
       ],
       explanation: {
-        consensus: "不満をそのまま伝えると「うちでも同じ理由で辞めるのでは」と受け取られる。事実は偽らず、①課題を客観的に述べ ②自分で改善行動を起こした事実を添え ③次に実現したい働き方へ前向きに変換する、の3点セットが定石。",
-        schools: "ワークライフバランスを理由にすること自体をNGとする説と、改善努力や健康面への配慮を添えれば問題ないとする説がある。単なる不満に聞こえる伝え方が問題であり、理由そのものが問題ではないという見方が実務では優勢。",
-        practice: "面接官の質問意図は「早期離職リスクの確認」と「自社とのマッチング確認」。嘘の理由は深掘りで矛盾が出るため作らない。人のせい（上司・会社）にする表現は責任感の欠如と受け取られやすく、最も避けるべき型。"
-      },
-      source: "doda・リクルートエージェント・マイナビ転職・type"
+        consensus: "退職理由は事実を変えずに、課題・自分がとった行動・次に実現したいこと、の順で組み立ててください。不満をそのまま並べる言い方は避けてください。",
+        schools: "働き方そのものを理由にしてよいのか。理由を隠すのではなく、そのときに自分が何をしたかを添える形にしてみてください。",
+        practice: "組み立てた理由を逆から質問されても食い違わないか、声に出して確かめてみてください。"
+      }
     },
     {
       id: "t_q02", scene: null, usage: "quiz", topic: "退職理由の伝え方",
@@ -434,11 +431,10 @@ var GAME_DATA = {
         { text: "「前職ほどではないと信じています」と少し冗談めかして笑いを取り、場を和ませてから次に進む", verdict: "bad", points: -1 }
       ],
       explanation: {
-        consensus: "この質問は退職理由の「鏡返し」型深掘りで、面接官は入社後のミスマッチ耐性を確認している。自分が問題視していた点（恒常的か一時的か）を切り分けて答えると、条件反射の不満ではなく軸のある判断だと伝わる。",
-        schools: "「大丈夫です」の一言回答を無難とする見方もあるが、根拠がないと表面的に聞こえるため、切り分けを一言添える方が説得力が出るという見解が実務では多い。",
-        practice: "「転職理由が残業なら、弊社の繁忙期は問題ないか」という確認はエージェント各社が頻出深掘りとして挙げる定番。想定していないと詰まりやすい質問の代表格。"
-      },
-      source: "ASSIGNメディア（鏡返し型深掘り）"
+        consensus: "退職理由として挙げたことについて「うちでも起きますが」と返された場合の答えを、先に一つ用意しておいてください。",
+        schools: "「大丈夫です」の一言だけで足りるのか。ひとことでよいので、自分が課題だと思っていた範囲を切り分けて添えてください。",
+        practice: "自分の退職理由をそのまま質問文に置き換えて、答えられるか試してみてください。"
+      }
     },
     {
       id: "m_q04", scene: null, usage: "quiz", topic: "Web面接",
@@ -451,11 +447,10 @@ var GAME_DATA = {
         { text: "動揺したまま続けても良い結果にならないので、その日は諦めて、翌日に改めて事情説明とお詫びのメールを送る", verdict: "bad", points: -1 }
       ],
       explanation: {
-        consensus: "切れたらまず落ち着いて再入室を試み、復帰したら第一声でお詫びと簡単な状況説明。数分以上復帰できない場合は速やかに緊急連絡先（電話）へ連絡する——この手順で各社一致。",
-        schools: "対立説はほぼなし。「何分で電話に切り替えるか」の目安（数分〜5分）に媒体差がある程度。",
-        practice: "通信トラブル自体を選考に直結させる企業は多くなく、評価されるのは「その後の対応」。相手側原因のトラブルでも自分からお詫びするのが無難とされる。事前準備として、案内メールの緊急連絡先をスマホに控えておくことが実務上の必須とされる。"
-      },
-      source: "調査項目25"
+        consensus: "接続が切れたら、まず落ち着いて入り直してください。戻れたら、最初にお詫びと状況をひとこと伝えてください。",
+        schools: "どのくらい待って電話に切り替えるか。戻れない状態が続くようなら、案内メールに書かれた連絡先へ電話してください。",
+        practice: "面接が始まる前に、案内メールの緊急連絡先をスマートフォンに控えておいてください。"
+      }
     },
     {
       id: "t_q03", scene: null, usage: "quiz", topic: "弱みの伝え方",
@@ -468,11 +463,10 @@ var GAME_DATA = {
         { text: "「弱みというのは見る人の立場で変わる相対的なものなので、一概に答える意味は薄い質問だと考えています」", verdict: "bad", points: -1 }
       ],
       explanation: {
-        consensus: "弱みの質問で見られているのは自己認識力と改善行動。①弱みを具体的に認める ②業務に影響した場面 ③現在の対処法、の3点で答えるのが定石。「弱みはない」は自己認識の欠如と受け取られる。",
-        schools: "「強みの裏返し」として語る型を推す説と、露骨な裏返しは準備した模範回答に聞こえるという説がある。裏返し自体より「対処法まで語れるか」が評価の分かれ目という見方が優勢。",
-        practice: "業務の根幹に関わる弱み（遅刻癖・虚偽・協調性の欠如など）は正直に言えば良いというものではなく、職務適性を直撃する内容は選ばない。対処済みで再発防止の仕組みがある弱みを選ぶのが実務的。"
-      },
-      source: "転職メディア各社の弱み回答解説"
+        consensus: "弱みは、具体的に認める・仕事で影響が出た場面・いまの対処法、の順で話してください。「弱みはありません」で終わらせないでください。",
+        schools: "強みの裏返しとして語ってよいのか。裏返しかどうかより、対処法まで話せる弱みを選んでください。",
+        practice: "選んだ弱みが仕事の根幹に関わっていないか、書き出して確かめてみてください。"
+      }
     },
     {
       id: "t_q04", scene: null, usage: "quiz", topic: "選考状況の伝え方",
@@ -485,11 +479,10 @@ var GAME_DATA = {
         { text: "「実は他社の方が提示条件が良く、迷っています」と正直に明かし、条件面の相談につなげる", verdict: "bad", points: -1 }
       ],
       explanation: {
-        consensus: "複数応募は当然の前提として面接官も理解しており、隠す必要はない。この質問の意図は「転職の軸の一貫性」と「内定辞退リスク」の確認。選考中の他社が同じ軸で説明できると、軸のある転職活動だと伝わる。",
-        schools: "第一志望と言い切るべきかは見解が分かれる（入社意思が固まっていない段階で言い切ることへの慎重論もある）。ただし「見え透いた嘘（御社しか受けていない）」がマイナスである点は一致。",
-        practice: "他社状況は正直に、ただし社名まで言う義務はない。「同業界で◯社」程度の粒度で十分。条件交渉のカードとして使うのは最終面接後のオファー面談の領分で、選考中に出すと志望度を疑われる。"
-      },
-      source: "JAC・エージェント系解説"
+        consensus: "他社を受けていること自体は隠さないでください。答えるときは、社名ではなく自分の転職の軸がそろっていることを話してください。",
+        schools: "第一志望と言い切るべきか。言い切るかどうかより、答えが自分の軸とつながる形にしてください。",
+        practice: "条件の話は選考中ではなく、オファーの話が出てからにしてください。"
+      }
     },
     {
       id: "m_q05", scene: null, usage: "quiz", topic: "退室",
@@ -502,11 +495,10 @@ var GAME_DATA = {
         { text: "着席のままお礼を述べて一礼→立って椅子の横で一礼→ドア前で向き直り「失礼いたします」と一礼して退室する", verdict: "best", points: 2 }
       ],
       explanation: {
-        consensus: "退室は「座礼（お礼）→椅子横で立礼→ドア前で向き直って一礼」の3段階が基本形。リクルート・doda・マイナビがほぼ同一手順を提示しており、通説一択に近い。",
-        schools: "省略を推す説は見当たらない。媒体差は「最初の礼を着席のまま入れるか、立ってから入れるか」の細部のみ。「やりすぎでは」という疑問に対しても媒体側は「省略せず徹底」と明言している。",
-        practice: "ドアは外に出てから向き直り、面接官側に半身を残す姿勢で、後ろ手を使わず両手で静かに閉める。建物を出るまでが面接——退室後もスマホ・電話・私語は控える（見送りの間の態度も評価対象になりうる）。"
-      },
-      source: "調査項目16・17・18"
+        consensus: "席でお礼を伝え、椅子の横で立って一礼し、ドアの前でもう一度向き直って礼をしてください。",
+        schools: "最初の礼を座ったまま入れるか、立ってから入れるか。どちらでもよいので、自分の中で順番だけ決めておいてください。",
+        practice: "ドアは後ろ手にせず、両手で静かに閉めてください。建物を出るまでは、スマートフォンを見ないようにしてください。"
+      }
     },
     {
       id: "rq01", scene: "reverse_q", usage: "both", topic: "逆質問",
@@ -519,21 +511,20 @@ var GAME_DATA = {
         { text: "「私は御社で必ず活躍できると考えていますが、率直にいかがでしょうか」と、逆に自分を売り込む", verdict: "ok", points: 1 }
       ],
       explanation: {
-        consensus: "「特にありません」は入社意欲が低いと受け取られやすく、避けるのが通説。調べれば分かる質問（事業内容）は準備不足の印象を与える。条件面ばかりの質問もネガティブに取られやすい。学ぶ姿勢を示す質問が最も減点リスクが低い。",
-        schools: "条件面の質問自体をNGとする説と、聞き方次第（「長く働くために確認したい」等の前置き）で問題ないとする説がある。全面NGではなく「条件面だけで終わる」ことが問題という見方が実務では多い。",
-        practice: "実務では逆質問を3〜5個準備し、面接中に解消された質問を飛ばして残りから優先度順に聞くのが定石。最終面接では入社後の活躍を前提にした質問（期待される役割・評価基準）が好まれる傾向。"
-      },
-      source: "大手転職メディア各社の逆質問解説"
+        consensus: "「特にありません」で終わらせないでください。調べれば分かることではなく、入社後の働き方につながる質問を用意してください。",
+        schools: "条件面を聞いてよいのか。条件の話だけで終わらないように、聞く順番を決めておいてください。",
+        practice: "逆質問はいくつか用意しておき、面接中に解消されたものを飛ばして、残りから順に聞いてください。"
+      }
     }
   ],
 
   quizDeck: {
     questionIds: ["m_q01","m_q02","m_q03","t_q01","t_q02","m_q04","t_q03","t_q04","m_q05","rq01"],
     rankTable: [
-      { min: 0,  max: 49,  rank: "C", title: "ノーガード出場型", comment: "現状のまま本番に臨むと、回答の中身以前の部分で損をする可能性が高い状態です。まず所作と頻出質問の型を一通り押さえてから応募に進むのが近道です。" },
-      { min: 50, max: 69,  rank: "B", title: "我流ファイター型", comment: "知っている部分と我流の部分が混在しています。特に「伝え方」系の失点は面接官の懸念に直結するため、弱点カテゴリの型を先に固めましょう。" },
-      { min: 70, max: 89,  rank: "A", title: "堅実クローザー型", comment: "基礎は固まっています。弱点に出たカテゴリだけ集中的に潰せば、面接が通過率のボトルネックになることはなくなります。" },
-      { min: 90, max: 100, rank: "S", title: "最終面接コンプリート型", comment: "面接対応力は完成域です。あとは本番の場数と、応募先ごとの固有対策（企業研究・逆質問の個別化）に時間を使いましょう。" }
+      { min: 0,  max: 49,  rank: "C", title: "ノーガード出場型", comment: "回答の中身より手前の部分に、まだ穴が残っています。まず所作と頻出質問の型を一通り押さえてください。" },
+      { min: 50, max: 69,  rank: "B", title: "我流ファイター型", comment: "知っている部分と我流の部分が混在しています。弱点に出たカテゴリの型から先に固めましょう。" },
+      { min: 70, max: 89,  rank: "A", title: "堅実クローザー型", comment: "基礎は固まっています。弱点に出たカテゴリだけ、集中的に見直してください。" },
+      { min: 90, max: 100, rank: "S", title: "最終面接コンプリート型", comment: "所作と頻出質問の型は一通り押さえられています。あとは応募先ごとの固有対策（企業研究・逆質問の個別化）に時間を使いましょう。" }
     ],
     topicComments: {
       "選考前の対応":     { good: "当日のトラブル対応は問題なし。緊急時の連絡判断ができています。", bad: "当日トラブル時の連絡判断に穴があります。「まず電話」の原則が抜けると、面接前から評価を落とします。" },
@@ -547,15 +538,15 @@ var GAME_DATA = {
       "逆質問":           { good: "逆質問の選び方は的確。意欲が伝わる締め方ができています。", bad: "逆質問で意欲を疑われるパターンを選んでいます。ここは事前準備だけで満点が取れる、最ももったいない失点です。" }
     },
     weakAdvice: {
-      "選考前の対応":     "面接前日に「緊急連絡先を電話帳に登録する」だけで、この弱点は当日消せます。",
-      "受付・入室前":     "受付の名乗り文句を1つ暗記してください。「本日◯時にお約束の◯◯です。◯◯様をお願いします」——これだけで固まりません。",
-      "面接中の所作":     "面接前夜に所作の解説を一度読み直すだけで防げる失点です。この診断の解説を見返してください。",
-      "退職理由の伝え方": "「課題→自分で動いた事実→次に実現したいこと」の3点で退職理由を書き直し、声に出して練習してください。ここが固まると面接全体が安定します。",
-      "Web面接":          "次のWeb面接の前に、緊急連絡先の控えと再入室手順の確認を。準備だけで解決する弱点です。",
-      "弱みの伝え方":     "「対処済みの弱み」を1つ用意してください。弱み・影響した場面・今の対処法、の3点で60秒で話せる形に。",
-      "選考状況の伝え方": "「同じ軸で◯社」＋「その中でも御社」の型を用意してください。嘘も拒否も不要になります。",
-      "退室":             "「座って礼→立って礼→ドア前で礼」の3段階を体で1回リハーサルしてください。頭で知っているだけだと本番で飛びます。",
-      "逆質問":           "逆質問を3〜5個、今日中にメモしてください。この診断の解説にNGパターンも載っています。"
+      "選考前の対応":     "面接の前日に、案内メールの緊急連絡先を電話帳に登録しておいてください。",
+      "受付・入室前":     "受付の名乗り文句を1つ決めて、声に出して覚えてください。「本日◯時にお約束の◯◯です。◯◯様をお願いします」の形で用意してみてください。",
+      "面接中の所作":     "面接の前夜に、この診断の所作の解説をもう一度読み直してください。",
+      "退職理由の伝え方": "「課題→自分で動いた事実→次に実現したいこと」の3点で退職理由を書き直し、声に出して練習してください。",
+      "Web面接":          "次のWeb面接の前に、緊急連絡先を控えて、再入室の手順を確認しておいてください。",
+      "弱みの伝え方":     "「対処済みの弱み」を1つ用意してください。弱み・影響した場面・今の対処法、の順で短く話せる形にまとめてみてください。",
+      "選考状況の伝え方": "「同じ軸で◯社」＋「その中でも御社」の型を用意してください。",
+      "退室":             "「座って礼→立って礼→ドア前で礼」の3段階を、一度体で通してみてください。",
+      "逆質問":           "逆質問をいくつか、今日中にメモしてください。この診断の解説も見返してみてください。"
     },
     /* P1-B2: 弱点タイプ → 記事内の主テンプレ（記事見出しは実測値）
        9タイプ中5タイプが「面接前48時間チェックリスト」に集まる。
@@ -574,16 +565,31 @@ var GAME_DATA = {
     /* P1-B3: 踊り場（CTAの上）。本文は weakAdvice をそのまま出すので新規文言はこの1行だけ */
     landing: {
       heading: "今日やること、1つだけ",
-      note: "これは今日、無料でできます。ここまでで診断は終わりです。"
+      note: "ここまでで診断は終わりです。この先を読むために支払う必要はありません。"
+    },
+    /* P2-01（2026-08-13）: 弱点の系統。伝え方系のときだけ有料商品を出す。
+       所作系は診断の解説で埋まるので、購入を勧めない（誇張・合格保証・偽の緊急性を置かない） */
+    weakFamily: {
+      "選考前の対応":"所作", "受付・入室前":"所作", "面接中の所作":"所作",
+      "Web面接":"所作", "退室":"所作",
+      "退職理由の伝え方":"伝え方", "弱みの伝え方":"伝え方",
+      "選考状況の伝え方":"伝え方", "逆質問":"伝え方"
     },
     cta: {
-      leadTpl: "それでも「{弱点タイプ}」は、当日の言い回しで結果が変わります。\nあなたの場合に効くのは {主テンプレ} です。\n退職理由の組み直し・逆質問リスト15選・面接前48時間チェックリストを含むテンプレ7点をまとめた記事に入っています。",
-      buttonTpl: "{主テンプレ}を読む",
-      leadFallback: "面接は、当日の言い回しで結果が変わります。\n退職理由の組み直し・逆質問リスト15選・面接前48時間チェックリストを含むテンプレ7点を、1本の記事にまとめてあります。",
-      buttonFallback: "対策テンプレ7点を読む",
+      leadTpl: "「{弱点タイプ}」は、知識だけでは終わらず、自分の職歴に当てはめて言葉にする作業が残る場所です。\n記事の後半に {主テンプレ} を置いています。\nあわせて、書いた回答を並べて食い違いを確認するチェックシート（PDF・Excel）をダウンロードできます。",
+      buttonTpl: "{主テンプレ}を読む（¥980・無料部分あり）",
+      leadFallback: "退職理由・弱み・選考状況・逆質問は、自分の職歴に当てはめて言葉にする作業が残ります。\n記事の後半と、書いた回答を並べて食い違いを確認するチェックシート（PDF・Excel）を用意しています。",
+      buttonFallback: "記事の後半を読む（¥980・無料部分あり）",
+      url: "https://note.com/bairitsu400/n/n74704fa14b5c",
+      note: "記事は途中まで無料で読めます。診断を受けていなくても読めます。合格を保証するものではありません。"
+    },
+    /* 所作系が弱点だった人向け（購入を勧めない・ボタンは出さない） */
+    ctaManner: {
+      lead: "「{弱点タイプ}」は知識の範囲です。上の解説を読み返してみてください。追加でお金を払う必要はありません。",
+      linkText: "（伝え方の方も気になる場合はこちら：テンプレ記事）",
       url: "https://note.com/bairitsu400/n/n74704fa14b5c"
     },
-    resultCta: "この診断で見えた弱点は、正しい順番で潰せば短期間で消せます。退職理由の組み直しテンプレ・逆質問リスト・面接前48時間チェックリストなど、弱点別の潰し方は解説記事にまとめてあります。"
+    resultCta: "弱点別の進め方は、記事の後半にまとめています。"
   },
 
   qaBank: [],
@@ -630,29 +636,62 @@ var Store = (function(){
   return { get:get, set:set, del:del, available:ok };
 })();
 
-/* D-2 計測: ハッシュ仮想ページを1セッション1回だけ発火（台帳 §4-2）
-   get/set は Store 内部関数のため Store.get/Store.set を使用（§4-2 注記どおり実コードで確認） */
-/* 2026-08-16 修正（P-0816S1 裁定4）
-   旧版は localStorage に書いて location.hash を変えるだけで、**どこへも送信していなかった**。
-   そのため /out-note（note誘導クリック）が1件も記録されず、Threads→LP→note の導線が
-   全区間で未計測になっていた。
-   既定経路のみで直す：Cloudflare Web Analytics のビーコンは history API のパス遷移を
-   pageview として拾うため、pushState で仮想パスへ移し、送信後に元のURLへ戻す。
-   （hash の変更だけではビーコンは飛ばない。外部エンドポイントは新設しない） */
+/* D-2 計測（RUN 20260813_055620 で修正）
+   旧実装は localStorage（Store）に d2_<path> を保存していたため、一度発火すると
+   その端末では別セッションでも二度と発火しなかった。累計が「1端末1回」で頭打ちになり、
+   §5 の判定線（72h 診断開始15 など）が構造的に到達不能だった。
+
+   修正: 重複排除の寿命を「セッション」に限定する。
+   - 同一セッション内の2回目以降は発火しない（sessionStorage に印を残す）
+   - タブ/ブラウザを開き直した新しいセッションでは再び発火する
+   - sessionStorage が使えない場合はメモリ（ページ寿命）にフォールバックする
+   - 発火は SPA 仮想ページビューとして history.pushState で行う（Cloudflare Web Analytics
+     はカスタムイベントを持たないため、ページビューとしてのみ観測する）
+   ※ 旧実装が残した localStorage の永続キーは、初回読み込み時に掃除する（下の cleanup）。 */
+var Track = (function(){
+  var KEY = "ivs_d2_", mem = {}, ok = false;
+  try{
+    var probe = KEY + "test";
+    sessionStorage.setItem(probe, "1"); sessionStorage.removeItem(probe); ok = true;
+  }catch(e){ ok = false; }
+  /* 旧 localStorage キーの掃除（永続抑止の解除） */
+  try{
+    var legacy = ["/p04f/diag-start", "/p04f/diag-complete", "/p04f/note-click",
+                  "/complete-quiz", "/out-note"];
+    for (var i = 0; i < legacy.length; i++) localStorage.removeItem("ivs_d2_" + legacy[i]);
+  }catch(e){}
+  function fired(p){
+    try{ return ok ? sessionStorage.getItem(KEY + p) === "1" : mem[p] === 1; }
+    catch(e){ return mem[p] === 1; }
+  }
+  function mark(p){
+    try{ if(ok) sessionStorage.setItem(KEY + p, "1"); else mem[p] = 1; }
+    catch(e){ mem[p] = 1; }
+  }
+  return { fired: fired, mark: mark, scope: (ok ? "sessionStorage" : "memory") };
+})();
+
 function track(path){
   try{
-    var k="d2_"+path;
-    if(Store.get(k,0)) return;
-    Store.set(k,1);
-    if(window.history && history.pushState){
+    if(Track.fired(path)) return false;
+    Track.mark(path);
+    if(window.history && typeof history.pushState === "function"){
+      /* 2026-08-16 移植: commit 541304ba（P-0816S1 裁定4）の計測修正。
+         ハッシュだけを付け替える pushState では Cloudflare Web Analytics の
+         ビーコンは pageview を送らない。実パスへ pushState して発火させ、
+         400ms 後に元の URL へ replaceState で戻す。外部エンドポイントは新設しない。
+         直前まで使っていた var url（pathname+search+"#"+path）は、置き換えた
+         pushState の引数専用だったため同じハンクで削除した。 */
       var back = location.pathname + location.search + location.hash;
-      history.pushState({d2:path}, "", path);            /* 例: /out-note */
-      setTimeout(function(){                              /* ビーコン送信を待ってから復元 */
-        try{ history.replaceState({d2:path}, "", back); }catch(e){}
+      history.pushState({ p04f: path }, "", path);
+      setTimeout(function(){
+        try{ history.replaceState({ p04f: path }, "", back); }catch(e){}
       }, 400);
+    } else {
+      location.hash = path;
     }
-    if(location.hash!=="#"+path) location.hash=path;
-  }catch(e){}
+    return true;
+  }catch(e){ return false; }
 }
 
 /* 履歴 20件 FIFO */
@@ -909,6 +948,12 @@ function animateCount(el, to, ms){
   window.requestAnimationFrame(step);
 }
 function startTrial(){
+  /* 計測（RUN 20260813_055620 で移設）:
+     以前はここで /p04f/diag-start を発火していたが、このアプリは 1590 行目の
+     startTrial() で起動するため、実測すると「ページを開いた＝診断開始」になり、
+     ページビューと同じ数になっていた（実測: 読み込み直後に diag-start が発火）。
+     §5 の判定線「診断開始15」が離脱者を含む数になるため、
+     最初の1問に回答した時点（renderQuizQuestion の回答ハンドラ）へ移した。 */
   var ids=GAME_DATA.quizDeck.questionIds;
   var qs=ids.map(function(id){ return GAME_DATA.mannerQuestions.find(function(m){return m.id===id;}); }).filter(Boolean);
   S.quiz={ list:qs, idx:0, answers:[] };
@@ -932,6 +977,8 @@ function renderQuizQuestion(){
   var bar=document.getElementById("qbar"); if(bar) setTimeout(function(){ bar.style.width=curPct+"%"; },30);
   renderChoices(q, function(ci){
     var c=q.choices[ci];
+    /* P2-04 計測: 診断開始 = 最初の1問に回答した時点（judge24h_0730 とは別系統） */
+    if(S.quiz.idx===0 && S.quiz.answers.length===0) track('/p04f/diag-start');
     S.quiz.answers.push({ id:q.id, topic:q.topic, choiceIdx:ci, points:c.points, verdict:c.verdict });
     showExplanation(q, ci, function(){
       if(S.quiz.idx<S.quiz.list.length-1){ S.quiz.idx++; renderQuizQuestion(); }
@@ -969,17 +1016,16 @@ function showExplanation(q, ci, onNext){
     '<div class="modal modal-ux">'+
       '<span class="verdict-pill vp-'+c.verdict+'">'+vlabel+'（'+pointLabel(c.points)+'）</span>'+
       (c.verdict!=="best"&&best?'<div class="ex-correct"><b>正解: </b>'+esc(best.text)+'</div>':'')+
-      '<div class="ex-block consensus"><div class="ex-fixed-head">通説</div><div class="ex-body">'+esc(e.consensus)+'</div></div>'+
-      '<details class="ex-block schools"><summary>諸説（タップで開く）</summary><div class="ex-body">'+esc(e.schools)+'</div></details>'+
-      '<details class="ex-block practice"><summary>実務（タップで開く）</summary><div class="ex-body">'+esc(e.practice)+'</div></details>'+
-      (q.source?'<div class="src-note">出典: '+esc(q.source)+'</div>':'')+
+      '<div class="ex-block consensus"><div class="ex-fixed-head">まずこうする</div><div class="ex-body">'+esc(e.consensus)+'</div></div>'+
+      '<details class="ex-block schools"><summary>迷いやすいところ（タップで開く）</summary><div class="ex-body">'+esc(e.schools)+'</div></details>'+
+      '<details class="ex-block practice"><summary>本番前の確認（タップで開く）</summary><div class="ex-body">'+esc(e.practice)+'</div></details>'+
       '<div class="next-fixed"><button class="btn accent" id="nextQ">次へ</button></div>'+
     '</div>';
   document.body.appendChild(m);
   document.getElementById("nextQ").onclick=function(){ m.remove(); onNext(); };
 }
 function renderQuizResult(){
-  track('/complete-quiz');
+  track('/p04f/diag-complete');   // P2-04 計測: 診断完了（旧 /complete-quiz を置換）
   var r=scoreQuiz(S.quiz.answers), qd=GAME_DATA.quizDeck;
   var tc=qd.topicComments||{}, wa=qd.weakAdvice||{};
   // topic別バー（アニメで伸長）＋一言診断（70%閾値 good/bad。データ無topicは非表示）
@@ -1005,9 +1051,18 @@ function renderQuizResult(){
       '<div style="font-size:13px;line-height:1.75;margin-top:10px">'+esc(qd.landing.note)+'</div>'+
       '</div>';
   }
-  // CTA（B項ガード: url未定義/空/"{{"含む＝未置換 → <a>を描画しない。leadは表示可）
+  // CTA（P2-02: 弱点の系統で分岐。伝え方系のときだけ有料商品を出す）
+  // B項ガード: url未定義/空/"{{"含む＝未置換 → <a>を描画しない。leadは表示可
+  var fam=(qd.weakFamily && topWeak)?qd.weakFamily[topWeak]:null;
   var ctaHTML="";
-  if(qd.cta){
+  if(fam==="所作" && qd.ctaManner){
+    // 所作系: 購入を勧めない。ボタンも出さない。テキストリンクだけ残す（非ゲート）
+    var mu=qd.ctaManner.url, mvalid=(typeof mu==="string" && mu.length>0 && mu.indexOf("{{")<0);
+    ctaHTML='<div class="notice" style="margin-top:16px">'+
+      esc(qd.ctaManner.lead.replace("{弱点タイプ}",topWeak))+
+      (mvalid?'<div style="margin-top:8px"><a href="'+esc(mu)+'" onclick="track(\'/p04f/note-click\')" target="_blank" rel="noopener">'+esc(qd.ctaManner.linkText)+'</a></div>':'')+
+      '</div>';
+  } else if(qd.cta){
     var url=qd.cta.url, valid=(typeof url==="string" && url.length>0 && url.indexOf("{{")<0);
     var tmap=qd.templateMap||{}, tpl=topWeak?tmap[topWeak]:null;
     var ctaLead, ctaBtn;
@@ -1018,7 +1073,8 @@ function renderQuizResult(){
       ctaLead=qd.cta.leadFallback; ctaBtn=qd.cta.buttonFallback;
     }
     ctaHTML='<div class="cta-box"><div class="cta-lead">'+esc(ctaLead).replace(/\n/g,"<br>")+'</div>'+
-      (valid?'<a class="btn accent cta-btn" onclick="track(\'/out-note\')" href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(ctaBtn)+'</a>':'')+
+      (valid?'<a class="btn accent cta-btn" onclick="track(\'/p04f/note-click\')" href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(ctaBtn)+'</a>':'')+
+      (qd.cta.note?'<div class="cta-note">'+esc(qd.cta.note)+'</div>':'')+
       '</div>';
   } else if(qd.resultCta){
     ctaHTML='<div class="notice" style="margin-top:16px">'+esc(qd.resultCta)+'</div>';
@@ -1035,12 +1091,12 @@ function renderQuizResult(){
       '<div class="rv-body">'+
         '<div class="rv-line"><span class="verdict-pill vp-'+a.verdict+'">あなた: '+esc(mine?mine.text:"")+'</span></div>'+
         (a.verdict!=="best"&&best?'<div class="rv-line"><span class="verdict-pill vp-best">最適解: '+esc(best.text)+'</span></div>':'')+
-        '<div class="layer consensus"><div class="lab">通説</div>'+esc(e.consensus)+'</div>'+
+        '<div class="layer consensus"><div class="lab">まずこうする</div>'+esc(e.consensus)+'</div>'+
       '</div></details>';
   }).join("");
   var title=r.rank.title||"";
-  // 表示順: スコアcount-up→ランクスタンプ+称号→総評→カテゴリ別→**CTA**→弱点→全問振り返り
-  // （2026-07-14 ろき指示: CTAは診断結果＝タイプ判定・カテゴリ別スコアの直下に1つだけ置く）
+  // 表示順: スコアcount-up→ランクスタンプ+称号→総評→カテゴリ別→踊り場→弱点→**CTA**→全問振り返り
+  // （2026-08-13 P2-03: 診断結果を先に全部出す。商品提示は弱点カードの後ろに1つだけ置く）
   h(
     '<div class="screen scroll">'+
       topbar("診断結果", screenTitle)+
@@ -1053,10 +1109,10 @@ function renderQuizResult(){
         '<div class="result-card"><div class="sec-h">総評</div><div style="font-size:14px;line-height:1.75">'+esc(r.rank.comment)+'</div></div>'+
         '<div class="result-card"><div class="sec-h">カテゴリ別</div>'+barsHTML+'</div>'+
         landingHTML+
-        ctaHTML+
         '<div class="sec-h" style="margin:2px 2px 10px">重点的に見直したい弱点</div>'+weakHTML+
+        ctaHTML+
         '<div class="result-card"><div class="sec-h">全問の振り返り</div>'+
-          '<p class="tiny muted" style="margin-top:-4px">タップで解説（通説）が開きます</p>'+reviewHTML+'</div>'+
+          '<p class="tiny muted" style="margin-top:-4px">タップで解説が開きます</p>'+reviewHTML+'</div>'+
         '<div class="btn-row"><button class="btn accent" id="again">もう一度</button>'+
         '<button class="btn ghost" id="review">解説を見返す</button></div>'+
         '<button class="btn ghost" id="home" style="margin-top:10px">タイトルへ</button>'+
@@ -1078,9 +1134,9 @@ function renderQuizReview(){
     var a=S.quiz.answers[i], e=q.explanation;
     return '<div class="card"><div class="q-topic">'+esc(q.topic)+'</div><div style="font-weight:700;margin-bottom:8px">'+esc(q.prompt)+'</div>'+
       '<span class="verdict-pill vp-'+a.verdict+'">あなた: '+({best:"最適",ok:"許容",bad:"NG"}[a.verdict])+'</span>'+
-      '<div class="layer consensus"><div class="lab">通説</div>'+esc(e.consensus)+'</div>'+
-      '<div class="layer schools"><div class="lab">諸説</div>'+esc(e.schools)+'</div>'+
-      '<div class="layer practice"><div class="lab">実務</div>'+esc(e.practice)+'</div></div>';
+      '<div class="layer consensus"><div class="lab">まずこうする</div>'+esc(e.consensus)+'</div>'+
+      '<div class="layer schools"><div class="lab">迷いやすいところ</div>'+esc(e.schools)+'</div>'+
+      '<div class="layer practice"><div class="lab">本番前の確認</div>'+esc(e.practice)+'</div></div>';
   }).join("");
 }
 
