@@ -632,11 +632,25 @@ var Store = (function(){
 
 /* D-2 計測: ハッシュ仮想ページを1セッション1回だけ発火（台帳 §4-2）
    get/set は Store 内部関数のため Store.get/Store.set を使用（§4-2 注記どおり実コードで確認） */
+/* 2026-08-16 修正（P-0816S1 裁定4）
+   旧版は localStorage に書いて location.hash を変えるだけで、**どこへも送信していなかった**。
+   そのため /out-note（note誘導クリック）が1件も記録されず、Threads→LP→note の導線が
+   全区間で未計測になっていた。
+   既定経路のみで直す：Cloudflare Web Analytics のビーコンは history API のパス遷移を
+   pageview として拾うため、pushState で仮想パスへ移し、送信後に元のURLへ戻す。
+   （hash の変更だけではビーコンは飛ばない。外部エンドポイントは新設しない） */
 function track(path){
   try{
     var k="d2_"+path;
     if(Store.get(k,0)) return;
     Store.set(k,1);
+    if(window.history && history.pushState){
+      var back = location.pathname + location.search + location.hash;
+      history.pushState({d2:path}, "", path);            /* 例: /out-note */
+      setTimeout(function(){                              /* ビーコン送信を待ってから復元 */
+        try{ history.replaceState({d2:path}, "", back); }catch(e){}
+      }, 400);
+    }
     if(location.hash!=="#"+path) location.hash=path;
   }catch(e){}
 }
