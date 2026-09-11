@@ -561,12 +561,12 @@ var GAME_DATA = {
       "選考前の対応":     "面接前48時間チェックリスト",
       "受付・入室前":     "面接前48時間チェックリスト",
       "面接中の所作":     "面接前48時間チェックリスト",
-      "退職理由の伝え方": "退職理由の組み直しテンプレ",
+      "退職理由の伝え方": "シート4「退職理由」",
       "Web面接":          "面接前48時間チェックリスト",
-      "弱みの伝え方":     "弱みの答え方テンプレ",
-      "選考状況の伝え方": "他社選考状況の答え方",
+      "弱みの伝え方":     "シート5「強み・弱み」",
+      "選考状況の伝え方": "シート3の「選考状況を聞かれたとき」の枠",
       "退室":             "お礼メールの型文",
-      "逆質問":           "逆質問リスト15選"
+      "逆質問":           "シート6「逆質問」"
     },
     /* P1-B3: 踊り場（CTAの上）。本文は weakAdvice をそのまま出すので新規文言はこの1行だけ */
     landing: {
@@ -582,18 +582,25 @@ var GAME_DATA = {
       "選考状況の伝え方":"伝え方", "逆質問":"伝え方"
     },
     cta: {
-      leadTpl: "「{弱点タイプ}」は、知識だけでは終わらず、自分の職歴に当てはめて言葉にする作業が残る場所です。\n記事の後半に {主テンプレ} を置いています。\nあわせて、書いた回答を並べて食い違いを確認するチェックシート（PDF・Excel）をダウンロードできます。",
-      buttonTpl: "{主テンプレ}を読む（¥980・無料部分あり）",
-      leadFallback: "退職理由・弱み・選考状況・逆質問は、自分の職歴に当てはめて言葉にする作業が残ります。\n記事の後半と、書いた回答を並べて食い違いを確認するチェックシート（PDF・Excel）を用意しています。",
-      buttonFallback: "記事の後半を読む（¥980・無料部分あり）",
-      url: "https://note.com/bairitsu400/n/n74704fa14b5c",
-      note: "記事は途中まで無料で読めます。診断を受けていなくても読めます。合格を保証するものではありません。"
+      leadTpl: "「{弱点タイプ}」は、知識だけでは終わらず、自分の職歴に当てはめて言葉にする作業が残る場所です。\n「面接回答のズレ修正キット」の3ページ目にあるガイドの表で、この弱点の行を見ると、事実メモのあとに {主テンプレ} を使う順番が分かります。\n印刷用のPDFと、画面で書ける編集用ファイルが入っています。",
+      buttonTpl: "{主テンプレ}を使うキットを見る（¥1,480・紹介部分は無料）",
+      leadFallback: "退職理由・弱み・選考状況・逆質問は、自分の職歴に当てはめて言葉にする作業が残ります。\n「面接回答のズレ修正キット」は、事実メモ1枚から6つの回答を組み立てて、並べて点検する記入式シートです。",
+      buttonFallback: "キットを見る（¥1,480・紹介部分は無料）",
+      url: "https://note.com/bairitsu400/n/n2bac297dc1fc",
+      note: "紹介部分は無料で読めます。診断を受けていなくても使えます。合格を保証するものではありません。"
+    },
+    /* 2026-09-11 有料キットへのリンクに付けるUTM。utm_source は診断サイトに来たときの値を引き継ぐ（無ければ sourceFallback） */
+    ctaUtm: { medium: "social", campaign: "interview_fix_kit", content: "result_cta", sourceFallback: "direct" },
+    /* 既存記事 n74704fa14b5c への補助リンク（主ボタンより目立たせない・計測パスも分ける） */
+    ctaPrev: {
+      linkText: "前に公開した記事「面接で落ちる理由は3分で特定できる」（テンプレ7点・¥980・途中まで無料）",
+      url: "https://note.com/bairitsu400/n/n74704fa14b5c"
     },
     /* 所作系が弱点だった人向け（購入を勧めない・ボタンは出さない） */
     ctaManner: {
       lead: "「{弱点タイプ}」は知識の範囲です。上の解説を読み返してみてください。追加でお金を払う必要はありません。",
-      linkText: "（伝え方の方も気になる場合はこちら：テンプレ記事）",
-      url: "https://note.com/bairitsu400/n/n74704fa14b5c"
+      linkText: "（伝え方の方も気になる場合はこちら：面接回答のズレ修正キット）",
+      url: "https://note.com/bairitsu400/n/n2bac297dc1fc"
     },
     resultCta: "弱点別の進め方は、記事の後半にまとめています。"
   },
@@ -741,6 +748,18 @@ function trackNavigate(url){
     ev.destination = { url: url, sameDocument: true };
     window.navigation.dispatchEvent(ev);
   }catch(e){}
+}
+/* 有料キットへのリンクにUTMを付ける。utm_source は来訪時のURLの値（英数と _ . - のみ・40字まで）、それ以外は fallback */
+function withUtm(url, u){
+  if(!u) return url;
+  var src=u.sourceFallback;
+  try{
+    var v=(new URLSearchParams(location.search).get("utm_source")||"").toLowerCase();
+    if(/^[a-z0-9_.-]{1,40}$/.test(v)) src=v;
+  }catch(e){}
+  return url+(url.indexOf("?")<0?"?":"&")+"utm_source="+encodeURIComponent(src)+
+    "&utm_medium="+encodeURIComponent(u.medium)+"&utm_campaign="+encodeURIComponent(u.campaign)+
+    "&utm_content="+encodeURIComponent(u.content);
 }
 
 /* 履歴 20件 FIFO */
@@ -1123,15 +1142,21 @@ function renderQuizResult(){
   // B項ガード: url未定義/空/"{{"含む＝未置換 → <a>を描画しない。leadは表示可
   var fam=(qd.weakFamily && topWeak)?qd.weakFamily[topWeak]:null;
   var ctaHTML="";
+  var pu=qd.ctaPrev?qd.ctaPrev.url:null, pvalid=(typeof pu==="string" && pu.length>0 && pu.indexOf("{{")<0);
+  var prevLink=function(style){
+    return pvalid?'<div style="'+style+'"><a href="'+esc(pu)+'" onclick="track(\'/p04f/prev-note-click\')" target="_blank" rel="noopener" style="color:inherit">'+esc(qd.ctaPrev.linkText)+'</a></div>':'';
+  };
   if(fam==="所作" && qd.ctaManner){
     // 所作系: 購入を勧めない。ボタンも出さない。テキストリンクだけ残す（非ゲート）
     var mu=qd.ctaManner.url, mvalid=(typeof mu==="string" && mu.length>0 && mu.indexOf("{{")<0);
     ctaHTML='<div class="notice" style="margin-top:16px">'+
       esc(qd.ctaManner.lead.replace("{弱点タイプ}",topWeak))+
-      (mvalid?'<div style="margin-top:8px"><a href="'+esc(mu)+'" onclick="track(\'/p04f/note-click\')" target="_blank" rel="noopener">'+esc(qd.ctaManner.linkText)+'</a></div>':'')+
+      (mvalid?'<div style="margin-top:8px"><a href="'+esc(withUtm(mu,qd.ctaUtm))+'" onclick="track(\'/p04f/note-click\')" target="_blank" rel="noopener">'+esc(qd.ctaManner.linkText)+'</a></div>':'')+
+      prevLink("margin-top:6px;font-size:12px")+
       '</div>';
   } else if(qd.cta){
     var url=qd.cta.url, valid=(typeof url==="string" && url.length>0 && url.indexOf("{{")<0);
+    if(valid) url=withUtm(url,qd.ctaUtm);
     var tmap=qd.templateMap||{}, tpl=topWeak?tmap[topWeak]:null;
     var ctaLead, ctaBtn;
     if(topWeak && tpl){   // P1-B2: 弱点タイプと主テンプレを名指しする
@@ -1143,6 +1168,7 @@ function renderQuizResult(){
     ctaHTML='<div class="cta-box"><div class="cta-lead">'+esc(ctaLead).replace(/\n/g,"<br>")+'</div>'+
       (valid?'<a class="btn accent cta-btn" onclick="track(\'/p04f/note-click\')" href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(ctaBtn)+'</a>':'')+
       (qd.cta.note?'<div class="cta-note">'+esc(qd.cta.note)+'</div>':'')+
+      prevLink("font-size:12px;line-height:1.7;opacity:.8;margin-top:8px")+
       '</div>';
   } else if(qd.resultCta){
     ctaHTML='<div class="notice" style="margin-top:16px">'+esc(qd.resultCta)+'</div>';
