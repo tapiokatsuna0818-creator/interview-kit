@@ -688,16 +688,37 @@ function track(path){
          400ms 後に元の URL へ replaceState で戻す。外部エンドポイントは新設しない。
          直前まで使っていた var url（pathname+search+"#"+path）は、置き換えた
          pushState の引数専用だったため同じハンクで削除した。 */
-      var back = location.pathname + location.search + location.hash;
-      history.pushState({ p04f: path }, "", path);
-      setTimeout(function(){
-        try{ history.replaceState({ p04f: path }, "", back); }catch(e){}
-      }, 400);
+      trackQueue.push(path);
+      trackNext();
     } else {
       location.hash = path;
     }
     return true;
   }catch(e){ return false; }
+}
+/* 2026-09-11 URL残り修正（GOV-D-025）:
+   旧実装は発火のたびに「その時点のURL」を戻り先に覚えていたため、400ms以内に2回発火すると
+   2回目が1回目の仮URLを戻り先にしてしまい、/p04f/diag-complete のまま残っていた
+   （結果画面は diag-complete と result-advice を続けて発火するため、初回完了では通常操作でも起きる）。
+   - 発火は1本ずつ順番に処理し、戻り先は一連の発火が始まる前の正規URLに固定する
+   - Navigation API がある環境の Cloudflare ビーコンは navigate イベント（replaceState も対象）で
+     ページビューを拾うため、replaceState で発火して履歴を増やさない
+   - 無い環境のビーコンは pushState しか拾わないため、従来どおり pushState で発火する */
+var trackQueue = [], trackBusy = false, trackHome = null;
+function trackNext(){
+  if(trackBusy || !trackQueue.length) return;
+  var path = trackQueue.shift();
+  if(trackHome === null) trackHome = location.pathname + location.search + location.hash;
+  trackBusy = true;
+  try{
+    if("navigation" in window && window.navigation) history.replaceState({ p04f: path }, "", path);
+    else history.pushState({ p04f: path }, "", path);
+  }catch(e){}
+  setTimeout(function(){
+    try{ history.replaceState({ p04f: path }, "", trackHome); }catch(e){}
+    trackBusy = false;
+    if(trackQueue.length) trackNext(); else trackHome = null;
+  }, 400);
 }
 
 /* 履歴 20件 FIFO */
@@ -981,17 +1002,35 @@ function renderQuizQuestion(){
     '</div>'
   );
   bindBack(screenTitle);
+  blockGhostClicks(app.firstElementChild);
   var bar=document.getElementById("qbar"); if(bar) setTimeout(function(){ bar.style.width=curPct+"%"; },30);
+  var quiz=S.quiz, idx=quiz.idx, picked=false, moved=false;   // 連打対策: 1問につき回答処理1回・遷移1回
   renderChoices(q, function(ci){
+    if(picked || S.quiz!==quiz || quiz.idx!==idx) return;
+    picked=true;
     var c=q.choices[ci];
     /* P2-04 計測: 診断開始 = 最初の1問に回答した時点（judge24h_0730 とは別系統） */
     if(S.quiz.idx===0 && S.quiz.answers.length===0) track('/p04f/diag-start');
     S.quiz.answers.push({ id:q.id, topic:q.topic, choiceIdx:ci, points:c.points, verdict:c.verdict });
     showExplanation(q, ci, function(){
+      if(moved || S.quiz!==quiz) return;
+      moved=true;
       if(S.quiz.idx<S.quiz.list.length-1){ S.quiz.idx++; renderQuizQuestion(); }
       else renderQuizResult();
     });
+    var m=document.body.lastElementChild;
+    if(m && m.classList.contains("modal-bg")) blockGhostClicks(m);
   });
+}
+/* 連打対策（trial診断のみ・2026-09-11 GOV-D-025）: 描画直後の500msだけ、その要素内のクリックを捨てる。
+   ダブルクリック／ダブルタップの2打目が、次の画面の選択肢・ボタンや解説の「次へ」に当たって
+   意図しない回答・遷移になるのを防ぐ。見た目は変えない。 */
+function blockGhostClicks(el){
+  if(!el) return;
+  var until=Date.now()+500;
+  el.addEventListener("click",function(ev){
+    if(Date.now()<until){ ev.stopPropagation(); ev.preventDefault(); }
+  },true);
 }
 /* 共通：5択カード描画（trial診断・fullドリル・シーン内で流用） */
 function renderChoices(q, onPick){
@@ -1127,6 +1166,7 @@ function renderQuizResult(){
     '</div>'
   );
   bindBack(screenTitle);
+  blockGhostClicks(app.firstElementChild);   // 最後の「次へ」の2打目が結果画面のボタン・リンクに当たるのを防ぐ
   var sn=document.getElementById("scoreNum"); if(sn) animateCount(sn, r.score, 1000);   // スコアカウントアップ
   setTimeout(function(){ Array.prototype.forEach.call(document.querySelectorAll(".qz-bar"),function(b){ b.style.width=(b.getAttribute("data-w")||0)+"%"; }); },60);
   document.getElementById("again").onclick=startTrial;
