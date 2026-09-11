@@ -6,8 +6,13 @@
 <meta name="theme-color" content="#1a2a4a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>面接シミュレーター</title>
-<link rel="manifest" href='data:application/json,{"name":"面接シミュレーター","short_name":"面接SIM","start_url":".","display":"standalone","orientation":"portrait","background_color":"%231a2a4a","theme_color":"%231a2a4a","icons":[{"src":"data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20192%20192%27%3E%3Crect%20width=%27192%27%20height=%27192%27%20rx=%2732%27%20fill=%27%231a2a4a%27/%3E%3Ccircle%20cx=%2796%27%20cy=%2772%27%20r=%2734%27%20fill=%27%23c9a24b%27/%3E%3Crect%20x=%2744%27%20y=%27118%27%20width=%27104%27%20height=%2758%27%20rx=%2729%27%20fill=%27%23c9a24b%27/%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"}]}'>
+<title>無料の面接力診断（10問）</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="無料の面接力診断（10問）">
+<meta property="og:url" content="https://tapiokatsuna0818-creator.github.io/interview-kit/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="無料の面接力診断（10問）">
+<link rel="manifest" href='data:application/json,{"name":"無料の面接力診断（10問）","short_name":"面接力診断","start_url":".","display":"standalone","orientation":"portrait","background_color":"%231a2a4a","theme_color":"%231a2a4a","icons":[{"src":"data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20192%20192%27%3E%3Crect%20width=%27192%27%20height=%27192%27%20rx=%2732%27%20fill=%27%231a2a4a%27/%3E%3Ccircle%20cx=%2796%27%20cy=%2772%27%20r=%2734%27%20fill=%27%23c9a24b%27/%3E%3Crect%20x=%2744%27%20y=%27118%27%20width=%27104%27%20height=%2758%27%20rx=%2729%27%20fill=%27%23c9a24b%27/%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"}]}'>
 <style>
 /* ===== リセット & 変数 ===== */
 :root{
@@ -146,6 +151,7 @@ p{margin:0 0 .8em;}
 /* ===== 5択 ===== */
 .q-stem{background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:14px;}
 .q-topic{font-size:11px; color:var(--accent-d); font-weight:700; letter-spacing:.05em; margin-bottom:4px;}
+.diag-title{font-size:15px; color:var(--navy); margin:0 0 10px;}
 .choice{
   display:flex; align-items:center; gap:12px; width:100%; text-align:left;
   background:#fff; border:1.5px solid var(--line); border-radius:12px;
@@ -909,7 +915,7 @@ function screenTitle(){
     '<div class="screen scroll">'+
       '<div class="hero">'+
         '<div class="logo"><svg viewBox="0 0 192 192"><circle cx="96" cy="72" r="34" fill="#fff"/><rect x="44" y="118" width="104" height="58" rx="29" fill="#fff"/></svg></div>'+
-        '<h1>面接シミュレーター</h1>'+
+        '<h1>無料の面接力診断（10問）</h1>'+
         '<div class="sub">受付から退室まで、本番の手順で練習する</div>'+
       '</div>'+
       '<div class="pad">'+
@@ -968,6 +974,7 @@ function renderQuizQuestion(){
       topbar("Q "+cur+" / "+n, screenTitle)+
       '<div class="progress"><i id="qbar" style="width:'+prevPct+'%"></i></div>'+
       '<div class="scroll grow pad">'+
+        '<h1 class="diag-title">無料の面接力診断（10問）</h1>'+
         '<div class="q-stem"><div class="q-topic">'+esc(q.topic)+'</div><div class="q-prompt">'+esc(q.prompt)+'</div></div>'+
         '<div id="choices"></div>'+
       '</div>'+
