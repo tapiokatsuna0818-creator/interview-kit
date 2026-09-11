@@ -684,8 +684,8 @@ function track(path){
     if(window.history && typeof history.pushState === "function"){
       /* 2026-08-16 移植: commit 541304ba（P-0816S1 裁定4）の計測修正。
          ハッシュだけを付け替える pushState では Cloudflare Web Analytics の
-         ビーコンは pageview を送らない。実パスへ pushState して発火させ、
-         400ms 後に元の URL へ replaceState で戻す。外部エンドポイントは新設しない。
+         ビーコンは pageview を送らない。実パスとして発火させる（URLは書き換えない・
+         GOV-D-026 で方式変更、下の trackSend）。外部エンドポイントは新設しない。
          直前まで使っていた var url（pathname+search+"#"+path）は、置き換えた
          pushState の引数専用だったため同じハンクで削除した。 */
       trackQueue.push(path);
@@ -700,25 +700,47 @@ function track(path){
    旧実装は発火のたびに「その時点のURL」を戻り先に覚えていたため、400ms以内に2回発火すると
    2回目が1回目の仮URLを戻り先にしてしまい、/p04f/diag-complete のまま残っていた
    （結果画面は diag-complete と result-advice を続けて発火するため、初回完了では通常操作でも起きる）。
-   - 発火は1本ずつ順番に処理し、戻り先は一連の発火が始まる前の正規URLに固定する
-   - Navigation API がある環境の Cloudflare ビーコンは navigate イベント（replaceState も対象）で
-     ページビューを拾うため、replaceState で発火して履歴を増やさない
-   - 無い環境のビーコンは pushState しか拾わないため、従来どおり pushState で発火する */
-var trackQueue = [], trackBusy = false, trackHome = null;
+   2026-09-11 計測中リロード404修正（GOV-D-026）:
+   仮URLへ書き換えて400ms後に戻す方式は、その400msにリロードすると /q1 等を読み直して404になった。
+   URLと履歴には一切触れず、ビーコンが見ている入口へ同じパスだけを渡す。
+   - Navigation API がある環境のビーコンは navigation の navigate イベントの destination.url を
+     ページビューとして送るため、同じ形のイベントを発行する（旧方式と同じく、パス→元URLの順）
+   - 無い環境のビーコンは pushState を包んで「記録してから本物の pushState を呼ぶ」ため、
+     複製できない値を state に入れて呼ぶ。記録後に本物が例外で止まり、URLも履歴も変わらない
+   - ビーコン読込前の発火（最初の /q1）は、読込と初回ページビュー送信を待ってから送る */
+var trackQueue = [], trackTimer = null, trackWaited = 0;
 function trackNext(){
-  if(trackBusy || !trackQueue.length) return;
-  var path = trackQueue.shift();
-  if(trackHome === null) trackHome = location.pathname + location.search + location.hash;
-  trackBusy = true;
+  if(trackTimer || !trackQueue.length) return;
+  var ready = window.__cfBeacon && document.readyState === "complete";
+  if(!ready && trackWaited < 15000){
+    trackTimer = setTimeout(function(){ trackTimer = null; trackWaited += 100; trackNext(); }, 100);
+    return;
+  }
+  trackTimer = setTimeout(function(){
+    trackTimer = null;
+    while(trackQueue.length) trackSend(trackQueue.shift());
+  }, ready ? 50 : 0);
+}
+function trackSend(path){
+  var home = location.href;
+  if("navigation" in window && window.navigation){
+    trackNavigate(new URL(path, home).href);
+    trackNavigate(home);
+    return;
+  }
+  try{ history.pushState({ p04f: path, clone: function(){} }, "", path); }catch(e){}
+  /* 例外にならない環境で URL が変わった場合だけ、同じ処理の中で元に戻す */
+  if(location.href !== home){ try{ history.replaceState(null, "", home); }catch(e){} }
+}
+function trackNavigate(url){
   try{
-    if("navigation" in window && window.navigation) history.replaceState({ p04f: path }, "", path);
-    else history.pushState({ p04f: path }, "", path);
+    var ev = new Event("navigate");
+    ev.canIntercept = true;
+    ev.navigationType = "replace";
+    ev.hashChange = false;
+    ev.destination = { url: url, sameDocument: true };
+    window.navigation.dispatchEvent(ev);
   }catch(e){}
-  setTimeout(function(){
-    try{ history.replaceState({ p04f: path }, "", trackHome); }catch(e){}
-    trackBusy = false;
-    if(trackQueue.length) trackNext(); else trackHome = null;
-  }, 400);
 }
 
 /* 履歴 20件 FIFO */
