@@ -752,14 +752,19 @@ function trackNavigate(url){
 /* 有料キットへのリンクにUTMを付ける。utm_source は来訪時のURLの値（英数と _ . - のみ・40字まで）、それ以外は fallback */
 function withUtm(url, u){
   if(!u) return url;
-  var src=u.sourceFallback;
   try{
-    var v=(new URLSearchParams(location.search).get("utm_source")||"").toLowerCase();
-    if(/^[a-z0-9_.-]{1,40}$/.test(v)) src=v;
-  }catch(e){}
-  return url+(url.indexOf("?")<0?"?":"&")+"utm_source="+encodeURIComponent(src)+
-    "&utm_medium="+encodeURIComponent(u.medium)+"&utm_campaign="+encodeURIComponent(u.campaign)+
-    "&utm_content="+encodeURIComponent(u.content);
+    var target=new URL(url,location.href);
+    if(target.protocol!=="https:" && target.protocol!=="http:") return url;
+    var params=new URLSearchParams(location.search);
+    var clean=function(v){return /^[a-z0-9_.-]{1,40}$/.test(v||"")?v:null;};
+    var source=clean((params.get("utm_source")||"").toLowerCase());
+    var medium=clean((params.get("utm_medium")||"").toLowerCase());
+    target.searchParams.set("utm_source",source||u.sourceFallback||"direct");
+    target.searchParams.set("utm_medium",source?(medium||u.medium||"referral"):"none");
+    target.searchParams.set("utm_campaign",u.campaign||"interview_fix_kit");
+    target.searchParams.set("utm_content",u.content||"result_cta");
+    return target.toString();
+  }catch(e){return url;}
 }
 
 /* 履歴 20件 FIFO */
@@ -1151,7 +1156,7 @@ function renderQuizResult(){
     var mu=qd.ctaManner.url, mvalid=(typeof mu==="string" && mu.length>0 && mu.indexOf("{{")<0);
     ctaHTML='<div class="notice" style="margin-top:16px">'+
       esc(qd.ctaManner.lead.replace("{弱点タイプ}",topWeak))+
-      (mvalid?'<div style="margin-top:8px"><a href="'+esc(withUtm(mu,qd.ctaUtm))+'" onclick="track(\'/p04f/note-click\')" target="_blank" rel="noopener">'+esc(qd.ctaManner.linkText)+'</a></div>':'')+
+      (mvalid?'<div style="margin-top:8px"><a href="'+esc(withUtm(mu,Object.assign({},qd.ctaUtm,{content:"manner_link"})))+'" onclick="track(\'/p04f/manner-note-click\')" target="_blank" rel="noopener">'+esc(qd.ctaManner.linkText)+'</a></div>':'')+
       prevLink("margin-top:6px;font-size:12px")+
       '</div>';
   } else if(qd.cta){
